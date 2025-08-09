@@ -1,0 +1,12 @@
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/bin/Debug/net8.0/SearchEngine.DocumentProcessing.deps.json
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/bin/Debug/net8.0/SearchEngine.DocumentProcessing.dll
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/bin/Debug/net8.0/SearchEngine.DocumentProcessing.pdb
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/obj/Debug/net8.0/SearchEngine.DocumentProcessing.GeneratedMSBuildEditorConfig.editorconfig
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/obj/Debug/net8.0/SearchEngine.DocumentProcessing.AssemblyInfoInputs.cache
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/obj/Debug/net8.0/SearchEngine.DocumentProcessing.AssemblyInfo.cs
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/obj/Debug/net8.0/SearchEngine.DocumentProcessing.csproj.CoreCompileInputs.cache
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/obj/Debug/net8.0/SearchEngine.DocumentProcessing.sourcelink.json
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/obj/Debug/net8.0/SearchEngine.DocumentProcessing.dll
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/obj/Debug/net8.0/refint/SearchEngine.DocumentProcessing.dll
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/obj/Debug/net8.0/SearchEngine.DocumentProcessing.pdb
+/home/kenny/Desktop/SearchEngine/SearchEngine.DocumentProcessing/obj/Debug/net8.0/ref/SearchEngine.DocumentProcessing.dll
