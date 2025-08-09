@@ -3,7 +3,6 @@ using SearchEngine.DocumentProcessing.Parsers;
 
 namespace SearchEngine.DocumentProcessing.Services
 {
-
     public class ParserFactory
     {
         public static IParser GetParser(string filePath)
@@ -13,9 +12,9 @@ namespace SearchEngine.DocumentProcessing.Services
             {
                 case ".txt":
                     return new PlainTextParser();
-                default: throw new Exception($"File type {extension} not supported");
+                default:
+                    throw new Exception($"File type {extension} not supported");
             }
-
         }
     }
 }
