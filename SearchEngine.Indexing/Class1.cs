@@ -1,6 +1,3 @@
 ﻿namespace SearchEngine.Indexing;
 
-public class Class1
-{
-
-}
+public class Class1 { }
