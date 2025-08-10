@@ -12,6 +12,17 @@ namespace SearchEngine.Query
             "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by"
         };
 
+        private readonly StemmingService _stemmingService;
+
+        public QueryParser() : this(new StemmingService(new PorterStemmer()))
+        {
+        }
+
+        public QueryParser(StemmingService stemmingService)
+        {
+            _stemmingService = stemmingService ?? throw new ArgumentNullException(nameof(stemmingService));
+        }
+
         public QueryRepresentation Parse(string query)
         {
             if (string.IsNullOrWhiteSpace(query))
@@ -43,13 +54,16 @@ namespace SearchEngine.Query
                 .Where(term => !_stopWords.Contains(term))
                 .ToList();
 
-            // Step 5: Calculate term frequency
-            var termFrequency = filteredTerms.GroupBy(t => t).ToDictionary(g => g.Key, g => g.Count());
+            // Step 5: Apply stemming to remaining terms
+            var stemmedTerms = _stemmingService.StemTerms(filteredTerms).ToList();
 
-            return new QueryRepresentatio
+            // Step 6: Calculate term frequency
+            var termFrequency = stemmedTerms.GroupBy(t => t).ToDictionary(g => g.Key, g => g.Count());
+
+            return new QueryRepresentation
             {
                 OriginalQuery = query,
-                Terms = filteredTerms,
+                Terms = stemmedTerms,
                 HasStopwordsRemoved = true,
                 TermFrequency = termFrequency
             };

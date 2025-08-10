@@ -447,5 +447,17 @@ namespace SearchEngine.Query.Tests
             Assert.Equal(1, result.TermFrequency["quick"]);
             Assert.Equal(1, result.TermFrequency["nation"]);
         }
+
+        [Fact]
+        public void Debug_Internationalization_Stemming()
+        {
+            var result = _parser.Parse("internationalization");
+            
+            // Debug output
+            Console.WriteLine($"Original: internationalization");
+            Console.WriteLine($"Result: {string.Join(", ", result.Terms)}");
+            
+            Assert.Single(result.Terms);
+        }
     }
 }
