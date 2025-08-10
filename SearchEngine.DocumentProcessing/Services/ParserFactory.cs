@@ -16,6 +16,8 @@ namespace SearchEngine.DocumentProcessing.Services
           return new HTMLParser();
         case ".xml":
           return new XMLParser();
+        case ".pdf":
+          return new PDFParser();
         default:
           throw new Exception($"File type {extension} not supported");
       }
