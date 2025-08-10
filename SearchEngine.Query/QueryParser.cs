@@ -46,8 +46,8 @@ namespace SearchEngine.Query
             // Step 5: Calculate term frequency
             var termFrequency = filteredTerms.GroupBy(t => t).ToDictionary(g => g.Key, g => g.Count());
 
-            return new QueryRepresentation 
-            { 
+            return new QueryRepresentatio
+            {
                 OriginalQuery = query,
                 Terms = filteredTerms,
                 HasStopwordsRemoved = true,

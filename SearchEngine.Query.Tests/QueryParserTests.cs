@@ -250,5 +250,202 @@ namespace SearchEngine.Query.Tests
             Assert.Equal(1, result.TermFrequency["lazy"]);
             Assert.Equal(1, result.TermFrequency["dog"]);
         }
+
+        // Porter Stemmer Tests
+        [Fact]
+        public void Parse_Should_Stem_Plural_Nouns()
+        {
+            var result = _parser.Parse("cats dogs houses");
+
+            Assert.Equal(new[] { "cat", "dog", "hous" }, result.Terms);
+            Assert.Equal("cats dogs houses", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["cat"]);
+            Assert.Equal(1, result.TermFrequency["dog"]);
+            Assert.Equal(1, result.TermFrequency["hous"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Verb_Forms()
+        {
+            var result = _parser.Parse("running jumping walking");
+
+            Assert.Equal(new[] { "run", "jump", "walk" }, result.Terms);
+            Assert.Equal("running jumping walking", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["run"]);
+            Assert.Equal(1, result.TermFrequency["jump"]);
+            Assert.Equal(1, result.TermFrequency["walk"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Adjective_Forms()
+        {
+            var result = _parser.Parse("quickly slowly happily");
+
+            Assert.Equal(new[] { "quick", "slow", "happili" }, result.Terms);
+            Assert.Equal("quickly slowly happily", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["quick"]);
+            Assert.Equal(1, result.TermFrequency["slow"]);
+            Assert.Equal(1, result.TermFrequency["happili"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Complex_Word_Forms()
+        {
+            var result = _parser.Parse("nationalization internationalization");
+
+            Assert.Equal(new[] { "nation", "intern" }, result.Terms);
+            Assert.Equal("nationalization internationalization", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["nation"]);
+            Assert.Equal(1, result.TermFrequency["intern"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Ing_Endings()
+        {
+            var result = _parser.Parse("fishing swimming reading");
+
+            Assert.Equal(new[] { "fish", "swim", "read" }, result.Terms);
+            Assert.Equal("fishing swimming reading", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["fish"]);
+            Assert.Equal(1, result.TermFrequency["swim"]);
+            Assert.Equal(1, result.TermFrequency["read"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Ed_Endings()
+        {
+            var result = _parser.Parse("walked talked played");
+
+            Assert.Equal(new[] { "walk", "talk", "play" }, result.Terms);
+            Assert.Equal("walked talked played", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["walk"]);
+            Assert.Equal(1, result.TermFrequency["talk"]);
+            Assert.Equal(1, result.TermFrequency["play"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Er_Endings()
+        {
+            var result = _parser.Parse("faster stronger better");
+
+            Assert.Equal(new[] { "fast", "strong", "bet" }, result.Terms);
+            Assert.Equal("faster stronger better", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["fast"]);
+            Assert.Equal(1, result.TermFrequency["strong"]);
+            Assert.Equal(1, result.TermFrequency["bet"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Est_Endings()
+        {
+            var result = _parser.Parse("fastest strongest best");
+
+            Assert.Equal(new[] { "fast", "strong", "best" }, result.Terms);
+            Assert.Equal("fastest strongest best", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["fast"]);
+            Assert.Equal(1, result.TermFrequency["strong"]);
+            Assert.Equal(1, result.TermFrequency["best"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Ly_Endings()
+        {
+            var result = _parser.Parse("quickly slowly carefully");
+
+            Assert.Equal(new[] { "quick", "slow", "care" }, result.Terms);
+            Assert.Equal("quickly slowly carefully", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["quick"]);
+            Assert.Equal(1, result.TermFrequency["slow"]);
+            Assert.Equal(1, result.TermFrequency["care"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Al_Endings()
+        {
+            var result = _parser.Parse("national personal original");
+
+            Assert.Equal(new[] { "nation", "person", "origin" }, result.Terms);
+            Assert.Equal("national personal original", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["nation"]);
+            Assert.Equal(1, result.TermFrequency["person"]);
+            Assert.Equal(1, result.TermFrequency["origin"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Complex_Stemming_Chain()
+        {
+            var result = _parser.Parse("nationalization internationalization");
+
+            Assert.Equal(new[] { "nation", "intern" }, result.Terms);
+            Assert.Equal("nationalization internationalization", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["nation"]);
+            Assert.Equal(1, result.TermFrequency["intern"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Mixed_Word_Forms()
+        {
+            var result = _parser.Parse("running cats quickly national");
+
+            Assert.Equal(new[] { "run", "cat", "quick", "nation" }, result.Terms);
+            Assert.Equal("running cats quickly national", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["run"]);
+            Assert.Equal(1, result.TermFrequency["cat"]);
+            Assert.Equal(1, result.TermFrequency["quick"]);
+            Assert.Equal(1, result.TermFrequency["nation"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_With_Stopwords()
+        {
+            var result = _parser.Parse("the running cats and quickly jumping dogs");
+
+            Assert.Equal(new[] { "run", "cat", "quick", "jump", "dog" }, result.Terms);
+            Assert.Equal("the running cats and quickly jumping dogs", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["run"]);
+            Assert.Equal(1, result.TermFrequency["cat"]);
+            Assert.Equal(1, result.TermFrequency["quick"]);
+            Assert.Equal(1, result.TermFrequency["jump"]);
+            Assert.Equal(1, result.TermFrequency["dog"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_Short_Words_Appropriately()
+        {
+            var result = _parser.Parse("at cat the dog");
+
+            Assert.Equal(new[] { "cat", "dog" }, result.Terms);
+            Assert.Equal("at cat the dog", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["cat"]);
+            Assert.Equal(1, result.TermFrequency["dog"]);
+        }
+
+        [Fact]
+        public void Parse_Should_Stem_With_Punctuation()
+        {
+            var result = _parser.Parse("running, cats! quickly; national.");
+
+            Assert.Equal(new[] { "run", "cat", "quick", "nation" }, result.Terms);
+            Assert.Equal("running, cats! quickly; national.", result.OriginalQuery);
+            Assert.True(result.HasStopwordsRemoved);
+            Assert.Equal(1, result.TermFrequency["run"]);
+            Assert.Equal(1, result.TermFrequency["cat"]);
+            Assert.Equal(1, result.TermFrequency["quick"]);
+            Assert.Equal(1, result.TermFrequency["nation"]);
+        }
     }
 }
