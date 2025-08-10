@@ -2,7 +2,7 @@ namespace SearchEngine.DocumentProcessing.Services
 {
     public class Normalizer
     {
-        public List<string> Normalize(List<string> tokenList)
+        public List<Tokenizer.Token> Normalize(List<Tokenizer.Token> tokenList)
         {
             var stopWord = new HashSet<string> {
                 "a", "an", "and", "are", "as", "at", "be", "by",
@@ -22,10 +22,11 @@ namespace SearchEngine.DocumentProcessing.Services
                 "can", "will", "just", "should", "now"
             };
 
-            var normalizedTokens = tokenList.Where(token => !stopWord.Contains(token)).ToList();
+            var normalizedTokens = tokenList
+                .Where(token => !stopWord.Contains(token.String))
+                .ToList();
 
             return normalizedTokens;
-
         }
     }
 }
