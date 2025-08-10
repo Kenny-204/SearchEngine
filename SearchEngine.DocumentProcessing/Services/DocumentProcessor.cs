@@ -4,6 +4,7 @@ namespace SearchEngine.DocumentProcessing.Services
 {
   public class DocumentProcessor
   {
+    
     private readonly IParser _parser;
     private readonly Tokenizer _tokenizer;
     private readonly Normalizer _normalizer;

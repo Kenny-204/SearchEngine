@@ -10,7 +10,8 @@ namespace SearchEngine.DocumentProcessing.Parsers
       var htmlDoc = new HtmlDocument();
       htmlDoc.Load(filePath);
       var node = htmlDoc.DocumentNode.SelectSingleNode("//body");
-      return node.InnerText;
+      string text = node.InnerText;
+      return text;
     }
   }
 }
