@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using SearchEngine.API.Core;
 using SearchEngine.Core.Types;
 using SearchEngine.Dtos;
 using SearchEngine.Filters;
+using SearchEngine.Mappings;
 using SearchEngine.Services;
 
 namespace SearchEngine.Enpoints;
@@ -18,7 +20,12 @@ public static class DocumentEndpoints
     group
       .MapPost(
         "/",
-        async ([FromForm] UploadDocDto uploadDTO, CloudinaryService cloudinaryService) =>
+        async (
+          [FromForm] UploadDocDto uploadDTO,
+          MongoDbContext db,
+          CloudinaryService cloudinaryService,
+          IBackgroundTaskQueue taskQueue
+        ) =>
         {
           try
           {
@@ -29,7 +36,10 @@ public static class DocumentEndpoints
               return Results.BadRequest("No file uploaded.");
 
             using var stream = file.OpenReadStream();
-            // var parsedDoc = await ProcessDocument(stream);
+
+            var processor = new DocumentProcessor();
+            var (meta, terms, keywords) = processor.ParseDocument(stream, "test.txt");
+
             var uploadResult = await cloudinaryService.UploadFileAsync(
               stream,
               file.FileName,
@@ -43,13 +53,26 @@ public static class DocumentEndpoints
                 statusCode: StatusCodes.Status500InternalServerError
               );
 
-            return Results.Ok(
-              new UploadDocDtoRes()
-              {
-                Url = uploadResult.SecureUrl,
-                PublicId = uploadResult.PublicId,
-              }
-            );
+            var metaData = new FileMetadata()
+            {
+              Author = meta.Author,
+              PageCount = meta.PageCount,
+              WordCount = meta.WordCount,
+              FileSize = meta.FileSizeBytes,
+            };
+            var newDocument = new DocumentModel()
+            {
+              Title = meta.Title,
+              FilePath = uploadResult.PublicId,
+              FileType = meta.Extension,
+              Keywords = keywords,
+              Metadata = metaData,
+            };
+            await db.Documents.InsertOneAsync(newDocument);
+
+            taskQueue.Enqueue((newDocument.Id, terms));
+
+            return Results.Ok(DocumentMapping.ToDto(newDocument));
           }
           catch (Exception e)
           {
@@ -59,7 +82,7 @@ public static class DocumentEndpoints
         }
       )
       .Accepts<UploadDocDto>("multipart/form-data") // Tells Swagger this is a file upload
-      .Produces<UploadDocDtoRes>(StatusCodes.Status200OK)
+      .Produces<DocumentResponseDto>(StatusCodes.Status200OK)
       .Produces(StatusCodes.Status400BadRequest)
       .WithName("UploadDocument")
       .WithOpenApi(operation =>

@@ -12,7 +12,7 @@ public class MongoDbContext
     _database = client.GetDatabase("dev");
   }
 
-  public IMongoCollection<Document> Documents => _database.GetCollection<Document>("Documents");
+  public IMongoCollection<DocumentModel> Documents => _database.GetCollection<DocumentModel>("Documents");
   public IMongoCollection<InvertedIndexTerm> InvertedIndex =>
     _database.GetCollection<InvertedIndexTerm>("InvertedIndex");
 }
