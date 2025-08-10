@@ -1,22 +1,10 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-public class TokenPosition
-{
-  [BsonElement("page")]
-  public int Page { get; set; }
-
-  [BsonElement("row")]
-  public int Row { get; set; }
-
-  [BsonElement("column")]
-  public int Column { get; set; }
-}
-
 public class Posting
 {
   [BsonElement("docId")]
-  public string DocId { get; set; } = string.Empty;
+  public ObjectId DocId { get; set; }
 
   [BsonElement("tf")]
   public int TermFrequency { get; set; }
@@ -25,7 +13,6 @@ public class Posting
 public class InvertedIndexTerm
 {
   [BsonId] // Marks this as the primary key
-  [BsonRepresentation(BsonType.ObjectId)]
   public required string Term { get; set; }
 
   [BsonElement("postings")]

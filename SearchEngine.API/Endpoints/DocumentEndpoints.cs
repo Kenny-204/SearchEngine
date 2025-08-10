@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using SearchEngine.API.Core;
 using SearchEngine.Core.Types;
 using SearchEngine.Dtos;
 using SearchEngine.Filters;
 using SearchEngine.Mappings;
-using SearchEngine.Parser;
 using SearchEngine.Services;
 
 namespace SearchEngine.Enpoints;
@@ -23,7 +23,8 @@ public static class DocumentEndpoints
         async (
           [FromForm] UploadDocDto uploadDTO,
           MongoDbContext db,
-          CloudinaryService cloudinaryService
+          CloudinaryService cloudinaryService,
+          IBackgroundTaskQueue taskQueue
         ) =>
         {
           try
@@ -68,6 +69,8 @@ public static class DocumentEndpoints
               Metadata = metaData,
             };
             await db.Documents.InsertOneAsync(newDocument);
+
+            taskQueue.Enqueue((newDocument.Id, terms));
 
             return Results.Ok(DocumentMapping.ToDto(newDocument));
           }

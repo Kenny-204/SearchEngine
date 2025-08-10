@@ -2,9 +2,8 @@ using dotenv.net;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
+using SearchEngine.API.Core;
 using SearchEngine.Enpoints;
-using SearchEngine.Indexing;
-using SearchEngine.Parser;
 using SearchEngine.Services;
 
 DotEnv.Load();
@@ -16,11 +15,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSingleton<MongoDbContext>();
-builder.Services.AddScoped<IDocumentIndexedEventHandler, DocumentIndexedEventHandler>(); // Handle Event when document is fished indexing
-builder.Services.AddScoped<IIndexService, IndexService>(); // Register IndexService (Add a doc to the indexing queue)
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>(); // Enqueue documents for processing the indexing processes
+builder.Services.AddSingleton<Indexer>();
+builder.Services.AddHostedService<BackgroundWorker>(); // Register background worker for processing and indexing
 
-// builder.Services.AddHostedService<BackgroundService>(); // Register background worker for processing and indexing
 // Swagger
 builder.Services.AddSwaggerGen(c =>
 {

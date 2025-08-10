@@ -15,7 +15,7 @@ using ExcelDataReader;
 using HtmlAgilityPack;
 using UglyToad.PdfPig;
 
-namespace SearchEngine.Parser;
+namespace SearchEngine.API.Core;
 
 public class DocumentMetadata
 {
