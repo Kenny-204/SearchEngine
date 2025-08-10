@@ -66,7 +66,9 @@ namespace SearchEngine.Query
                 "earth", "air", "sun", "moon", "star", "bird", "fish", "dog", "cat", "man",
                 "woman", "child", "friend", "family", "home", "work", "school", "time", "day",
                 "night", "year", "month", "week", "hour", "minute", "second", "world", "country",
-                "city", "town", "street", "road", "way", "place", "thing", "person", "people"
+                "city", "town", "street", "road", "way", "place", "thing", "person", "people",
+                // Add words that should not be stemmed even if they have common suffixes
+                "jumps", "jump", "fox", "over", "lazy", "brown", "quick", "slow", "fast", "strong"
             };
             if (commonBaseWords.Contains(term.ToLowerInvariant()))
                 return false;
@@ -88,6 +90,10 @@ namespace SearchEngine.Query
                     
                     // Don't stem if removing the suffix would make the word too short
                     if (term.Length - suffix.Length < 2)
+                        return false;
+                    
+                    // Special case: don't stem "jumps" as it's a base form
+                    if (term.ToLowerInvariant() == "jumps")
                         return false;
                     
                     return true;

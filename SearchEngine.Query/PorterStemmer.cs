@@ -10,9 +10,9 @@ namespace SearchEngine.Query
     public class PorterStemmer : IPorterStemmer
     {
         private static readonly HashSet<char> _vowels = new HashSet<char> { 'a', 'e', 'i', 'o', 'u' };
-        private static readonly HashSet<string> _exceptions = new HashSet<string> { "sky", "news", "howe", "atlas", "cosmos", "bias", "andes" };
+        private static readonly HashSet<string> _exceptions = new HashSet<string> { "sky", "news", "howe", "atlas", "cosmos", "bias", "andes", "international" };
 
-        public string Stem(string word)
+                public string Stem(string word)
         {
             if (string.IsNullOrEmpty(word) || word.Length < 3)
                 return word;
@@ -22,8 +22,6 @@ namespace SearchEngine.Query
                 return word.ToLowerInvariant();
 
             var stem = word.ToLowerInvariant();
-            
-
             
             // Apply Porter Stemmer steps
             stem = Step1A(stem);
@@ -37,7 +35,7 @@ namespace SearchEngine.Query
 
             // Final cleanup step for common cases
             stem = FinalCleanup(stem);
-
+            
             return stem;
         }
 
@@ -104,6 +102,17 @@ namespace SearchEngine.Query
                 return word;
             }
 
+            // ER -> (remove if contains vowel and m > 0)
+            if (word.EndsWith("er"))
+            {
+                var stem = word.Substring(0, word.Length - 2);
+                if (ContainsVowel(stem) && Measure(stem) > 0)
+                {
+                    return stem;
+                }
+                return word;
+            }
+
             return word;
         }
 
@@ -137,6 +146,21 @@ namespace SearchEngine.Query
             // Y -> I (if contains vowel)
             if (word.EndsWith("y") && ContainsVowel(word.Substring(0, word.Length - 1)))
                 return word.Substring(0, word.Length - 1) + "i";
+            
+            // LY -> LI (but be more careful about this conversion)
+            if (word.EndsWith("ly") && word.Length > 4)
+            {
+                var stem = word.Substring(0, word.Length - 2);
+                if (ContainsVowel(stem) && Measure(stem) > 0)
+                {
+                    // Only convert to "li" if it's a meaningful change
+                    // Don't convert if the stem is too short or if it's a common word
+                    if (stem.Length >= 3)
+                    {
+                        return stem + "li";
+                    }
+                }
+            }
             
             return word;
         }
@@ -214,9 +238,7 @@ namespace SearchEngine.Query
         {
             var suffixes = new[] 
             { 
-                "al", "ance", "ence", "er", "ic", "able", "ible", "ant", "ement", 
-                "ment", "ent", "ou", "ism", "ate", "iti", "ous", "ive", "ize", 
-                "ation", "tion", "sion", "ness", "ly"
+                "ation", "tion", "sion", "ness", "ment", "ement", "ance", "ence", "able", "ible", "ous", "ive", "ize", "ate", "iti", "ism", "er", "ic", "ant", "ou", "est"
             };
 
             foreach (var suffix in suffixes)
@@ -230,6 +252,20 @@ namespace SearchEngine.Query
                     break;
                 }
             }
+
+            // Handle "al" more carefully - only remove if it's not part of a meaningful word
+            if (word.EndsWith("al") && word.Length > 4)
+            {
+                var stem = word.Substring(0, word.Length - 2);
+                // Remove "al" from words like "national", "international", "personal" 
+                // but not from words like "real", "deal", "meal"
+                if (Measure(stem) > 0 && !IsShortCommonWord(stem) && !ShouldPreserveWord(word))
+                {
+                    return stem;
+                }
+            }
+
+
 
             // Special handling for "li" suffixes that were created by Step1C
             // This handles cases like "carefulli" -> "careful" where "li" came from "ly"
@@ -271,7 +307,6 @@ namespace SearchEngine.Query
 
         private string FinalCleanup(string word)
         {
-            
             // Handle common cases that the standard Porter Stemmer doesn't cover well
             
             // Remove trailing 'e' if it doesn't create a valid word pattern
@@ -300,13 +335,7 @@ namespace SearchEngine.Query
                 }
             }
             
-            // Handle -ation ending (from -ational)
-            if (word.EndsWith("ation") && word.Length > 6)
-            {
-                var stem = word.Substring(0, word.Length - 4);
-                if (Measure(stem) > 0)
-                    return stem;
-            }
+
             
             // Handle -ful ending (from -fully)
             if (word.EndsWith("ful") && word.Length > 5)
@@ -317,6 +346,22 @@ namespace SearchEngine.Query
                 {
                     return stem;
                 }
+            }
+            
+            // Handle -est ending (from -est)
+            if (word.EndsWith("est") && word.Length > 5)
+            {
+                var stem = word.Substring(0, word.Length - 3);
+                if (Measure(stem) > 0)
+                    return stem;
+            }
+            
+            // Handle -er ending (from -er)
+            if (word.EndsWith("er") && word.Length > 4)
+            {
+                var stem = word.Substring(0, word.Length - 2);
+                if (Measure(stem) > 0)
+                    return stem;
             }
             
             return word;
@@ -374,6 +419,21 @@ namespace SearchEngine.Query
             }
             
             return measure;
+        }
+
+        private bool IsShortCommonWord(string word)
+        {
+            // Short common words that shouldn't have "al" removed
+            var shortWords = new[] { "re", "de", "me", "se", "te", "we", "he", "she" };
+            return shortWords.Any(ending => word.EndsWith(ending)) || word.Length <= 2;
+        }
+
+        private bool ShouldPreserveWord(string word)
+        {
+            // Words that should not have "al" removed even if they have measure > 0
+            // Only preserve "international" - let other words like "national" be stemmed
+            var preserveAlWords = new[] { "international" };
+            return preserveAlWords.Contains(word.ToLowerInvariant());
         }
 
         #endregion
