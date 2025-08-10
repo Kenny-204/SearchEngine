@@ -18,8 +18,8 @@ public class Posting
   [BsonElement("docId")]
   public string DocId { get; set; } = string.Empty;
 
-  [BsonElement("positions")]
-  public List<TokenPosition> Positions { get; set; } = new();
+  [BsonElement("tf")]
+  public int TermFrequency { get; set; }
 }
 
 public class InvertedIndexTerm

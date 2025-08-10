@@ -43,6 +43,8 @@ public class CloudinaryService
     Transformation? transformation = null
   )
   {
+    fileStream.Position = 0;
+
     var uploadParam = new ImageUploadParams()
     {
       File = new FileDescription(fileName, fileStream),
@@ -59,6 +61,8 @@ public class CloudinaryService
     bool? useFileName = false
   )
   {
+    fileStream.Position = 0;
+
     var uploadParams = new RawUploadParams
     {
       File = new FileDescription(fileName, fileStream),

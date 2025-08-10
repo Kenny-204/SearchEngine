@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using SearchEngine.Enpoints;
 using SearchEngine.Indexing;
+using SearchEngine.Parser;
 using SearchEngine.Services;
 
 DotEnv.Load();
