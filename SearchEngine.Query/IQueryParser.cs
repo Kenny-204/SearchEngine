@@ -4,4 +4,4 @@ namespace SearchEngine.Query
     {
         QueryRepresentation Parse(string query);
     }
-} 
+}
