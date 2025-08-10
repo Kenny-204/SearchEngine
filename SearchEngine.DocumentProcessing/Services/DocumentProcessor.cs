@@ -15,7 +15,7 @@ namespace SearchEngine.DocumentProcessing.Services
             _normalizer = new Normalizer();
         }
 
-        public List<string> processDocument(string text)
+        public List<Tokenizer.Token> processDocument(string text)
         {
             var parsedText = _parser.ReadContent(text);
             var tokenizedText = _tokenizer.Tokenize(parsedText);
