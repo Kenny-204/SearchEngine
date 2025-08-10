@@ -1,21 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
-
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
   <ItemGroup>
+    <PackageReference Include="CloudinaryDotNet" Version="1.27.6" />
+    <PackageReference Include="dotenv.net" Version="4.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.16" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
+    <PackageReference Include="MiniValidation" Version="0.9.2" />
+    <PackageReference Include="MongoDB.Driver" Version="3.4.2" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.6.8" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\SearchEngine.Core\SearchEngine.Core.csproj" />
     <ProjectReference Include="..\SearchEngine.DocumentProcessing\SearchEngine.DocumentProcessing.csproj" />
     <ProjectReference Include="..\SearchEngine.Indexing\SearchEngine.Indexing.csproj" />
     <ProjectReference Include="..\SearchEngine.Query\SearchEngine.Query.csproj" />
   </ItemGroup>
-
 </Project>
