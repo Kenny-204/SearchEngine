@@ -1,8 +1,21 @@
 DocumentProcessing.TestApp
+# Build outputs
 bin/
 obj/
+**/bin/
+**/obj/
+
+# Debug/Release folders
 [Dd]ebug/
 [Rr]elease/
 x64/
 x86/
+
+# Environment files
 .env
+
+# Specific project folders (if needed)
+/SearchEngine.Query/bin/
+/SearchEngine.Query/obj/
+/SearchEngine.Query.Tests/bin/
+/SearchEngine.Query.Tests/obj/
