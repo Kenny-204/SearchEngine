@@ -1,5 +1,8 @@
 using Xunit;
-using SearchEngine.Query;
+using SearchEngine.Query.Core;
+using SearchEngine.Query.Services;
+using SearchEngine.Query.Configuration;
+using SearchEngine.Query.Algorithms;
 using System;
 using System.Linq;
 
@@ -11,7 +14,16 @@ namespace SearchEngine.Query.Tests
 
         public QueryParserTests()
         {
-            _parser = new QueryParser();
+            // Use a parser with configuration that allows single-character words and preserves original formatting
+            var configuration = new QueryParserConfiguration
+            {
+                MinimumWordLength = 1,
+                MaximumWordLength = 50,
+                PreserveOriginalFormatting = true
+            };
+            var stopwordsProvider = new DefaultStopwordsProvider();
+            var stemmingService = new StemmingService(new PorterStemmer());
+            _parser = new QueryParser(stemmingService, stopwordsProvider, configuration);
         }
 
         [Fact]
@@ -87,23 +99,15 @@ namespace SearchEngine.Query.Tests
         [Fact]
         public void Parse_Should_Return_Empty_List_For_Empty_String()
         {
-            var result = _parser.Parse("");
-
-            Assert.Empty(result.Terms);
-            Assert.Equal("", result.OriginalQuery);
-            Assert.False(result.HasStopwordsRemoved);
-            Assert.Empty(result.TermFrequency);
+            var exception = Assert.Throws<ArgumentException>(() => _parser.Parse(""));
+            Assert.Contains("Query cannot be null, empty, or whitespace only", exception.Message);
         }
 
         [Fact]
         public void Parse_Should_Return_Empty_List_For_Whitespace_Only()
         {
-            var result = _parser.Parse("   ");
-
-            Assert.Empty(result.Terms);
-            Assert.Equal("   ", result.OriginalQuery);
-            Assert.False(result.HasStopwordsRemoved);
-            Assert.Empty(result.TermFrequency);
+            var exception = Assert.Throws<ArgumentException>(() => _parser.Parse("   "));
+            Assert.Contains("Query cannot be null, empty, or whitespace only", exception.Message);
         }
 
         [Fact]
@@ -204,12 +208,8 @@ namespace SearchEngine.Query.Tests
         [Fact]
         public void Parse_Should_Handle_Null_Input()
         {
-            var result = _parser.Parse(null);
-
-            Assert.Empty(result.Terms);
-            Assert.Equal("", result.OriginalQuery);
-            Assert.False(result.HasStopwordsRemoved);
-            Assert.Empty(result.TermFrequency);
+            var exception = Assert.Throws<ArgumentException>(() => _parser.Parse(null));
+            Assert.Contains("Query cannot be null, empty, or whitespace only", exception.Message);
         }
 
         [Fact]
@@ -239,14 +239,13 @@ namespace SearchEngine.Query.Tests
         {
             var result = _parser.Parse("The quick brown fox jumps over the lazy dog");
 
-            Assert.Equal(new[] { "quick", "brown", "fox", "jumps", "over", "lazy", "dog" }, result.Terms);
+            Assert.Equal(new[] { "quick", "brown", "fox", "jump", "lazy", "dog" }, result.Terms);
             Assert.Equal("The quick brown fox jumps over the lazy dog", result.OriginalQuery);
             Assert.True(result.HasStopwordsRemoved);
             Assert.Equal(1, result.TermFrequency["quick"]);
             Assert.Equal(1, result.TermFrequency["brown"]);
             Assert.Equal(1, result.TermFrequency["fox"]);
-            Assert.Equal(1, result.TermFrequency["jumps"]);
-            Assert.Equal(1, result.TermFrequency["over"]);
+            Assert.Equal(1, result.TermFrequency["jump"]);
             Assert.Equal(1, result.TermFrequency["lazy"]);
             Assert.Equal(1, result.TermFrequency["dog"]);
         }
@@ -296,11 +295,11 @@ namespace SearchEngine.Query.Tests
         {
             var result = _parser.Parse("nationalization internationalization");
 
-            Assert.Equal(new[] { "nation", "international" }, result.Terms);
+            Assert.Equal(new[] { "nation", "internation" }, result.Terms);
             Assert.Equal("nationalization internationalization", result.OriginalQuery);
             Assert.True(result.HasStopwordsRemoved);
             Assert.Equal(1, result.TermFrequency["nation"]);
-            Assert.Equal(1, result.TermFrequency["international"]);
+            Assert.Equal(1, result.TermFrequency["internation"]);
         }
 
         [Fact]
@@ -386,11 +385,11 @@ namespace SearchEngine.Query.Tests
         {
             var result = _parser.Parse("nationalization internationalization");
 
-            Assert.Equal(new[] { "nation", "international" }, result.Terms);
+            Assert.Equal(new[] { "nation", "internation" }, result.Terms);
             Assert.Equal("nationalization internationalization", result.OriginalQuery);
             Assert.True(result.HasStopwordsRemoved);
             Assert.Equal(1, result.TermFrequency["nation"]);
-            Assert.Equal(1, result.TermFrequency["international"]);
+            Assert.Equal(1, result.TermFrequency["internation"]);
         }
 
         [Fact]
@@ -448,8 +447,160 @@ namespace SearchEngine.Query.Tests
             Assert.Equal(1, result.TermFrequency["nation"]);
         }
 
-
-
-
+        [Fact]
+        public void Parse_Should_Respect_Configuration_Options()
+        {
+            var configuration = new QueryParserConfiguration
+            {
+                EnableStemming = false,
+                RemoveStopwords = false,
+                ConvertToLowercase = false,
+                MinimumWordLength = 3,
+                MaximumWordLength = 10
+            };
+            
+            var stopwordsProvider = new DefaultStopwordsProvider();
+            var stemmingService = new StemmingService(new PorterStemmer());
+            var parser = new QueryParser(stemmingService, stopwordsProvider, configuration);
+            
+            var result = parser.Parse("The Quick Brown Fox");
+            
+            Assert.Equal("The Quick Brown Fox", result.OriginalQuery);
+            Assert.False(result.HasStopwordsRemoved);
+            Assert.Contains("The", result.Terms);
+            Assert.Contains("Quick", result.Terms);
+            Assert.Contains("Brown", result.Terms);
+            Assert.Contains("Fox", result.Terms);
+        }
+        
+        [Fact]
+        public void Parse_Should_Respect_Minimum_Word_Length()
+        {
+            var configuration = new QueryParserConfiguration
+            {
+                MinimumWordLength = 4,
+                MaximumWordLength = 20,
+                RemoveStopwords = false // Don't remove stopwords for this test
+            };
+            
+            var stopwordsProvider = new DefaultStopwordsProvider();
+            var stemmingService = new StemmingService(new PorterStemmer());
+            var parser = new QueryParser(stemmingService, stopwordsProvider, configuration);
+            
+            var result = parser.Parse("a an the cat dog bird");
+            
+            // Should only include words with length >= 4
+            Assert.Contains("bird", result.Terms);
+            Assert.DoesNotContain("a", result.Terms);
+            Assert.DoesNotContain("an", result.Terms);
+            Assert.DoesNotContain("the", result.Terms);
+            Assert.DoesNotContain("cat", result.Terms);
+            Assert.DoesNotContain("dog", result.Terms);
+        }
+        
+        [Fact]
+        public void Parse_Should_Respect_Maximum_Word_Length()
+        {
+            var configuration = new QueryParserConfiguration
+            {
+                MinimumWordLength = 1,
+                MaximumWordLength = 5,
+                RemoveStopwords = false // Don't remove stopwords for this test
+            };
+            
+            var stopwordsProvider = new DefaultStopwordsProvider();
+            var stemmingService = new StemmingService(new PorterStemmer());
+            var parser = new QueryParser(stemmingService, stopwordsProvider, configuration);
+            
+            var result = parser.Parse("a cat dog bird elephant");
+            
+            // Should only include words with length <= 5
+            Assert.Contains("a", result.Terms);
+            Assert.Contains("cat", result.Terms);
+            Assert.Contains("dog", result.Terms);
+            Assert.Contains("bird", result.Terms);
+            Assert.DoesNotContain("elephant", result.Terms);
+        }
+        
+        [Fact]
+        public void Parse_Should_Use_Custom_Tokenization_Pattern()
+        {
+            var configuration = new QueryParserConfiguration
+            {
+                TokenizationPattern = @"\s+", // Split only on whitespace
+                RemoveStopwords = false
+            };
+            
+            var stopwordsProvider = new DefaultStopwordsProvider();
+            var stemmingService = new StemmingService(new PorterStemmer());
+            var parser = new QueryParser(stemmingService, stopwordsProvider, configuration);
+            
+            var result = parser.Parse("cat,dog;bird:fox");
+            
+            // Should treat punctuation as part of words since we're only splitting on whitespace
+            Assert.Contains("cat,dog;bird:fox", result.Terms);
+        }
+        
+        [Fact]
+        public void Parse_Should_Handle_Empty_Query_With_Exception()
+        {
+            var parser = QueryParserFactory.CreateDefault();
+            
+            var exception = Assert.Throws<ArgumentException>(() => parser.Parse(""));
+            Assert.Contains("Query cannot be null, empty, or whitespace only", exception.Message);
+        }
+        
+        [Fact]
+        public void Parse_Should_Handle_Whitespace_Only_Query_With_Exception()
+        {
+            var parser = QueryParserFactory.CreateDefault();
+            
+            var exception = Assert.Throws<ArgumentException>(() => parser.Parse("   "));
+            Assert.Contains("Query cannot be null, empty, or whitespace only", exception.Message);
+        }
+        
+        [Fact]
+        public void Parse_Should_Handle_Null_Query_With_Exception()
+        {
+            var parser = QueryParserFactory.CreateDefault();
+            
+            var exception = Assert.Throws<ArgumentException>(() => parser.Parse(null));
+            Assert.Contains("Query cannot be null, empty, or whitespace only", exception.Message);
+        }
+        
+        [Fact]
+        public void Parse_Should_Use_Stopwords_Provider()
+        {
+            var configuration = QueryParserConfiguration.CreateDefault();
+            var stopwordsProvider = new DefaultStopwordsProvider();
+            var stemmingService = new StemmingService(new PorterStemmer());
+            var parser = new QueryParser(stemmingService, stopwordsProvider, configuration);
+            
+            var result = parser.Parse("the quick brown fox");
+            
+            // Should remove stopwords using the provider
+            Assert.DoesNotContain("the", result.Terms);
+            Assert.Contains("quick", result.Terms);
+            Assert.Contains("brown", result.Terms);
+            Assert.Contains("fox", result.Terms);
+        }
+        
+        [Fact]
+        public void Parse_Should_Handle_Configuration_Validation()
+        {
+            var configuration = new QueryParserConfiguration
+            {
+                MinimumWordLength = 5,
+                MaximumWordLength = 3 // Invalid: max < min
+            };
+            
+            var stopwordsProvider = new DefaultStopwordsProvider();
+            var stemmingService = new StemmingService(new PorterStemmer());
+            
+            // Should throw during construction due to invalid configuration
+            var exception = Assert.Throws<ArgumentException>(() => 
+                new QueryParser(stemmingService, stopwordsProvider, configuration));
+            Assert.Contains("MaximumWordLength", exception.Message);
+        }
     }
 }
