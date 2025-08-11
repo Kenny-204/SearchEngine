@@ -7,19 +7,20 @@ using SearchEngine.Enpoints;
 using SearchEngine.Services;
 
 DotEnv.Load();
+var envVars = DotEnv.Read();
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddSingleton<MongoDbContext>();
+builder.Services.AddSingleton(new MongoDbContext(envVars["MONGODB_CONNECTION_STRING"]));
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>(); // Enqueue documents for processing the indexing processes
 builder.Services.AddSingleton<Indexer>();
 builder.Services.AddHostedService<BackgroundWorker>(); // Register background worker for processing and indexing
+builder.Services.AddSingleton<AutoSuggestion>();
 
 // Swagger
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
   c.SwaggerDoc("v1", new OpenApiInfo { Title = "Document API", Version = "v1" });
@@ -28,12 +29,20 @@ builder.Services.AddSwaggerGen(c =>
 // Cloudinary
 builder.Services.Configure<CloudinarySettings>(options =>
 {
-  var envVars = DotEnv.Read();
   options.CloudName = envVars["CLOUDINARY_CLOUD_NAME"];
   options.ApiKey = envVars["CLOUDINARY_API_KEY"];
   options.ApiSecret = envVars["CLOUDINARY_API_SECRET"];
 });
 builder.Services.AddSingleton<CloudinaryService>();
+
+// Redis
+builder.Services.Configure<RedisCacheSettings>(options =>
+{
+  options.Host = envVars["REDIS_HOST"];
+  options.Port = int.Parse(envVars["REDIS_PORT"]);
+  options.Password = envVars["REDIS_PASSWORD"];
+});
+builder.Services.AddSingleton<RedisCacheService>();
 
 // AntiForgery
 builder.Services.AddAntiforgery();
@@ -102,6 +111,36 @@ app.MapGet(
     }
   )
   .WithName("GetWeatherForecast")
+  .WithOpenApi();
+
+/// <summary>
+/// Returns autocomplete suggestions for a given prefix.
+/// </summary>
+/// <param name="prefix">The text prefix to search for.</param>
+/// <param name="cache">The Redis cache service.</param>
+/// <returns>A list of matching terms.</returns>
+app.MapGet(
+    "/autosuggest",
+    async (string prefix, AutoSuggestion autoSuggest) =>
+    {
+      var results = await autoSuggest.SuggestAsync(prefix);
+
+      return Results.Ok(results ?? []);
+    }
+  )
+  .Produces<List<string>>(StatusCodes.Status200OK)
+  .WithName("GetAutoSuggest") // Swagger operationId
+  .WithOpenApi(); // Ensures it appears in Swagger
+
+app.MapGet(
+    "/next-batch",
+    (IBackgroundTaskQueue taskQueue) =>
+    {
+      return Results.Ok(taskQueue.NextBatchTime);
+    }
+  )
+  .Produces<DateTimeOffset>(StatusCodes.Status200OK)
+  .WithName("GetNextIndexBatch")
   .WithOpenApi();
 
 app.MapDocumentEndpoint();
