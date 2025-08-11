@@ -31,24 +31,6 @@ public class DocumentMetadata
 
 public class DocumentProcessor
 {
-  static HashSet<string> StopWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-  {
-    "the",
-    "is",
-    "in",
-    "at",
-    "of",
-    "a",
-    "and",
-    "to",
-    "it",
-    "on",
-    "for",
-    "with",
-    "as",
-    "by",
-  };
-
   public (DocumentMetadata, Dictionary<string, int>, List<string>) ParseDocument(
     Stream fileStream,
     string fileName
@@ -319,7 +301,7 @@ public class DocumentProcessor
   {
     return Regex
       .Split(text.ToLowerInvariant(), @"\W+")
-      .Where(token => token.Length > 0 && !StopWords.Contains(token))
+      .Where(token => token.Length > 0 && !Globals.StopWords.Contains(token))
       .ToList();
   }
 }

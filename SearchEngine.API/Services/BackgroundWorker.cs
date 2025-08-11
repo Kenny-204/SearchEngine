@@ -15,6 +15,7 @@ namespace SearchEngine.Services;
 public interface IBackgroundTaskQueue
 {
   void Enqueue(DocTerms workItem);
+  DateTimeOffset? NextBatchTime { get; set; }
   Task<DocTerms> DequeueAsync(CancellationToken cancellationToken);
   bool TryDequeue(out DocTerms item);
 }
@@ -22,6 +23,7 @@ public interface IBackgroundTaskQueue
 public class BackgroundTaskQueue : IBackgroundTaskQueue
 {
   private readonly Channel<DocTerms> _queue;
+  public DateTimeOffset? NextBatchTime { get; set; }
 
   public BackgroundTaskQueue()
   {
@@ -69,6 +71,7 @@ public class BackgroundWorker : BackgroundService
     {
       try
       {
+        _taskQueue.NextBatchTime = DateTimeOffset.Now.AddHours(1);
         // Wait 1 hour before processing
         await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
 
