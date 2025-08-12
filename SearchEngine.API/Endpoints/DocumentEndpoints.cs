@@ -32,18 +32,22 @@ public static class DocumentEndpoints
           {
             var file = uploadDTO.File;
             var fileName =
-              (uploadDTO.FileName == string.Empty) ? file.FileName : uploadDTO.FileName;
+              (uploadDTO.FileName is null || uploadDTO.FileName == string.Empty)
+                ? file.FileName
+                : uploadDTO.FileName;
+            var ext = Path.GetExtension(file.FileName);
+            Console.WriteLine(ext);
             if (file == null)
               return Results.BadRequest("No file uploaded.");
 
             using var stream = file.OpenReadStream();
 
             var processor = new DocumentProcessor();
-            var (meta, terms, keywords) = processor.ParseDocument(stream, "test.txt");
+            var (meta, terms, keywords) = processor.ParseDocument(stream, fileName, ext);
 
             var uploadResult = await cloudinaryService.UploadFileAsync(
               stream,
-              file.FileName,
+              fileName,
               publicId: $"docs/{Path.GetFileNameWithoutExtension(fileName)}",
               useFileName: true
             );
@@ -65,7 +69,7 @@ public static class DocumentEndpoints
             {
               Title = meta.Title,
               FilePath = uploadResult.PublicId,
-              FileType = meta.Extension,
+              FileType = ext,
               Keywords = keywords,
               Metadata = metaData,
             };

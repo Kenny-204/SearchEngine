@@ -33,18 +33,15 @@ public class DocumentProcessor
 {
   public (DocumentMetadata, Dictionary<string, int>, List<string>) ParseDocument(
     Stream fileStream,
-    string fileName
+    string fileName,
+    string ext
   )
   {
-    string ext = Path.GetExtension(fileName).ToLowerInvariant();
-
     var terms = ProcessFile(fileStream, ext);
     var keywords = GetKeywords(terms);
 
-    DocumentMetadata meta = ExtractMetadata(fileStream, fileName);
+    DocumentMetadata meta = ExtractMetadata(fileStream, fileName, ext);
     meta.WordCount = terms.Values.Sum();
-    var json = JsonSerializer.Serialize(terms, new JsonSerializerOptions { WriteIndented = true });
-    Console.WriteLine(json);
     return (meta, terms, keywords);
   }
 
@@ -57,12 +54,12 @@ public class DocumentProcessor
     return significantTerms.OrderByDescending(kv => kv.Value).Select(kv => kv.Key).ToList();
   }
 
-  private DocumentMetadata ExtractMetadata(Stream fileStream, string fileName)
+  private DocumentMetadata ExtractMetadata(Stream fileStream, string fileName, string ext)
   {
     var metadata = new DocumentMetadata
     {
       FileName = fileName,
-      Extension = Path.GetExtension(fileName).ToLowerInvariant(),
+      Extension = ext,
       FileSizeBytes = fileStream.Length,
     };
 
@@ -222,7 +219,7 @@ public class DocumentProcessor
     using var copy = new MemoryStream();
     stream.CopyTo(copy);
     copy.Position = 0;
-    using var doc = PdfDocument.Open(stream);
+    using var doc = PdfDocument.Open(copy);
     return string.Join("\n", doc.GetPages().Select(p => p.Text));
   }
 
@@ -231,7 +228,7 @@ public class DocumentProcessor
     using var copy = new MemoryStream();
     stream.CopyTo(copy);
     copy.Position = 0;
-    using var doc = WordprocessingDocument.Open(stream, false);
+    using var doc = WordprocessingDocument.Open(copy, false);
     var _ = doc
       .MainDocumentPart?.Document.Body?.Descendants<DocumentFormat.OpenXml.Wordprocessing.Text>()
       .Select(t => t.Text);
