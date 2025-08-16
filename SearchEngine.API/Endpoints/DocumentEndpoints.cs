@@ -125,7 +125,15 @@ public static class DocumentEndpoints
             .ToListAsync();
           var docLookup = results.ToLookup(d => d.Id);
           var orderedDocs = paginatedDocs
-            .SelectMany(s => docLookup[s.Id].Select(d => new { Document = d, s.Score }))
+            .SelectMany(s =>
+              docLookup[s.Id]
+                .Select(d => new
+                {
+                  Document = d,
+                  s.Score,
+                  s.Matches,
+                })
+            )
             .ToList();
 
           var baseUrl = $"{req.Scheme}://{req.Host}{req.Path}";
@@ -150,7 +158,9 @@ public static class DocumentEndpoints
               PageSize = pageSize,
               TotalCount = totalCount,
               TotalPages = totalPages,
-              Items = orderedDocs.Select(d => DocumentMapping.ToRankDto(d.Document, d.Score)),
+              Items = orderedDocs.Select(d =>
+                DocumentMapping.ToRankDto(d.Document, d.Score, d.Matches)
+              ),
               PrevPageUrl = prevPageUrl,
               NextPageUrl = nextPageUrl,
             }

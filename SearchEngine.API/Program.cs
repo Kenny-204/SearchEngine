@@ -51,10 +51,23 @@ builder.Services.AddSingleton<RedisCacheService>();
 // AntiForgery
 builder.Services.AddAntiforgery();
 
+// Cors
+builder.Services.AddCors(options =>
+{
+  options.AddPolicy(
+    "AllowAll",
+    builder =>
+    {
+      builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+    }
+  );
+});
+
 var app = builder.Build();
 
 // middlewares
 app.UseAntiforgery();
+app.UseCors("AllowAll");
 
 app.UseExceptionHandler(appError =>
 {
