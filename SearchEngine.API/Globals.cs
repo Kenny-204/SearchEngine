@@ -1,5 +1,14 @@
 public static class Globals
 {
+  public static void Print<T>(IEnumerable<T> obj)
+  {
+    foreach (var item in obj)
+    {
+      Console.Write($"{item}, ");
+    }
+    Console.WriteLine();
+  }
+
   public static readonly HashSet<string> StopWords = new HashSet<string>(
     StringComparer.OrdinalIgnoreCase
   )

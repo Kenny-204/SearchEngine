@@ -4,6 +4,8 @@ using Microsoft.OpenApi.Models;
 using Scalar.AspNetCore;
 using SearchEngine.API.Core;
 using SearchEngine.Enpoints;
+using SearchEngine.Query.Algorithms;
+using SearchEngine.Query.Services;
 using SearchEngine.Services;
 
 DotEnv.Load();
@@ -20,6 +22,8 @@ builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>(); // E
 builder.Services.AddSingleton<Indexer>();
 builder.Services.AddHostedService<BackgroundWorker>(); // Register background worker for processing and indexing
 builder.Services.AddSingleton<AutoSuggestion>();
+builder.Services.AddSingleton<DocMatcher>();
+builder.Services.AddSingleton<QueryParser>(QueryParserFactory.CreateDefault());
 
 // Swagger
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -172,7 +176,6 @@ app.MapGet(
   .WithOpenApi();
 
 app.MapDocumentEndpoint();
-
 app.Run();
 
 record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)

@@ -1,4 +1,5 @@
 using MongoDB.Driver;
+using SearchEngine.Query.Core;
 using SearchEngine.Services;
 
 namespace SearchEngine.API.Core;
@@ -55,5 +56,66 @@ public class AutoSuggestion
       .ToList();
 
     return combined;
+  }
+
+  public async Task<List<InvertedIndexTerm>> AutoCompleteQuery(QueryRepresentation query)
+  {
+    var cacheKey = $"autocomplete_query:{query.OriginalQuery.ToLower()}";
+    var cached = await _cache.GetAsync<List<InvertedIndexTerm>>(cacheKey);
+    if (cached is not null)
+    {
+      return cached;
+    }
+    Console.WriteLine("sdscsvsv");
+    var prefixes = query.Terms;
+
+    // 1️⃣ Normalize and deduplicate
+    var uniquePrefixes = prefixes
+      .Where(p => !string.IsNullOrWhiteSpace(p))
+      .Select(p => p.Trim())
+      .Distinct(StringComparer.OrdinalIgnoreCase)
+      .OrderBy(p => p, StringComparer.OrdinalIgnoreCase) // important for prefix check
+      .ToList();
+
+    // 2️⃣ Remove redundant prefixes (e.g., "car" is inside "ca")
+    var minimalPrefixes = new List<string>();
+    foreach (var prefix in uniquePrefixes)
+    {
+      if (
+        !minimalPrefixes.Any(existing =>
+          prefix.StartsWith(existing, StringComparison.OrdinalIgnoreCase)
+        )
+      )
+      {
+        minimalPrefixes.Add(prefix);
+      }
+    }
+    // 3️⃣ Build filters only from minimal set
+    var filters = new List<FilterDefinition<InvertedIndexTerm>>();
+    foreach (var prefix in minimalPrefixes)
+    {
+      var nextPrefix = prefix.Substring(0, prefix.Length - 1) + (char)(prefix[^1] + 1);
+
+      var rangeFilter = Builders<InvertedIndexTerm>.Filter.And(
+        Builders<InvertedIndexTerm>.Filter.Gte("_id", prefix),
+        Builders<InvertedIndexTerm>.Filter.Lt("_id", nextPrefix)
+      );
+
+      filters.Add(rangeFilter);
+    }
+
+    if (filters is null || filters.Count == 0)
+      return [];
+
+    var finalFilter = Builders<InvertedIndexTerm>.Filter.Or(filters);
+
+    var dbTerms = await _db
+      .InvertedIndex.Find(finalFilter)
+      // .Limit(10) // not still sure i should limit or not
+      .ToListAsync();
+
+    await _cache.SetAsync(cacheKey, dbTerms, TimeSpan.FromMinutes(2));
+    Globals.Print(dbTerms.Select(s => s.Term));
+    return dbTerms;
   }
 }
