@@ -129,14 +129,6 @@
 //             }
 //         }
         
-        // Helper methods (implement these based on your document store)
-        private List<Document> GetDocuments() => new List<Document>();
-        private double CalculateTermRelevance(string term, Document document) => 0.0;
-        private SearchResults HandleSingleTermQuery(QueryRepresentation query) => new SearchResults(new List<DocumentResult>());
-        private SearchResults HandleSimpleQuery(QueryRepresentation query) => new SearchResults(new List<DocumentResult>());
-        private SearchResults HandleComplexQuery(QueryRepresentation query) => new SearchResults(new List<DocumentResult>());
-        private SearchResults PerformDocumentMatching(List<string> terms, Dictionary<string, int> frequencies) => new SearchResults(new List<DocumentResult>());
-    }
 //         // Helper methods (implement these based on your document store)
 //         private List<Document> GetDocuments() => new List<Document>();
 //         private double CalculateTermRelevance(string term, Document document) => 0.0;
