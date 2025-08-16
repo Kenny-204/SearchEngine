@@ -209,7 +209,7 @@ public static class DocumentEndpoints
             };
             var newDocument = new DocumentModel()
             {
-              Title = meta.Title,
+              Title = fileName,
               FilePath = uploadResult.PublicId,
               FileType = ext,
               Keywords = keywords,
