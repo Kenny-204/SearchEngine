@@ -4,8 +4,16 @@ using A = DocumentFormat.OpenXml.Drawing;
 
 namespace SearchEngine.DocumentProcessing.Parsers
 {
+  /// <summary>
+  /// Parser for reading content from PPTX files
+  /// </summary>
   public class PptxParser : IParser
   {
+    /// <summary>
+    /// Reads the content of a PPTX file
+    /// </summary>
+    /// <param name="filePath">The path to the PPTX file</param>
+    /// <returns>The plain text content of the file</returns>
     public string ReadContent(string filePath)
     {
       using (PresentationDocument presentation = PresentationDocument.Open(filePath, false))
@@ -25,7 +33,7 @@ namespace SearchEngine.DocumentProcessing.Parsers
 
         return textBuilder.ToString();
       }
-      throw new NotImplementedException();
+     
     }
   }
 }

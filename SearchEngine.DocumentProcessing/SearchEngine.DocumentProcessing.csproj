@@ -8,6 +8,7 @@
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.12.2" />
     <PackageReference Include="PdfPig" Version="0.1.11" />
+    <PackageReference Include="Porter2Stemmer" Version="1.0.0" />
   </ItemGroup>
 
   <PropertyGroup>

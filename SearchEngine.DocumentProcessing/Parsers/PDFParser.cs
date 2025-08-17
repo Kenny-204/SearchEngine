@@ -7,10 +7,18 @@ using UglyToad.PdfPig.Graphics.Operations.TextState;
 
 namespace SearchEngine.DocumentProcessing.Parsers
 {
+  /// <summary>
+  /// Parser for reading content from HTML files
+  /// </summary>
   public class PDFParser : IParser
   {
     public StringBuilder text = new StringBuilder();
 
+    /// <summary>
+    /// Reads the content of a PDF file
+    /// </summary>
+    /// <param name="filePath">The path to the PDF file</param>
+    /// <returns>The plain text content of the file</returns>
     public string ReadContent(string filePath)
     {
       using (PdfDocument document = PdfDocument.Open(filePath))

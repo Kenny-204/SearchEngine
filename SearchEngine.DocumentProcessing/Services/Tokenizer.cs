@@ -1,3 +1,5 @@
+using Porter2Stemmer;
+
 namespace SearchEngine.DocumentProcessing.Services
 {
   public class Tokenizer
@@ -20,9 +22,15 @@ namespace SearchEngine.DocumentProcessing.Services
         return new List<Token> { };
       string lowerCaseText = text.ToLower();
       var tokens = lowerCaseText.Split(
-        new[] { ' ', '\n', '\r', '\t', '?', '"', '\'', '(', ')', '[', ']', '-', '_', '/', '.' },
+        new[] { ' ', '\n', '\r', '\t', '?', '"', '\'',':',',', '(', ')', '[', ']', '-', '_', '/', '.' },
         StringSplitOptions.RemoveEmptyEntries
       );
+
+      for (int i = 0; i < tokens.Length; i++)
+      {
+        var stemmer = new EnglishPorter2Stemmer();
+        tokens[i] = stemmer.Stem(tokens[i]).Value;
+      }
       return tokens.Select((token, index) => new Token(token, index)).ToList();
     }
   }

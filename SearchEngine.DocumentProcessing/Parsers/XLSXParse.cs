@@ -4,8 +4,16 @@ using SearchEngine.DocumentProcessing.Interfaces;
 
 namespace SearchEngine.DocumentProcessing.Parsers
 {
+  /// <summary>
+  /// Parser for reading content from XLSX files
+  /// </summary>
   public class Xlsxparser : IParser
   {
+    /// <summary>
+    /// Reads the content of a XLSX file
+    /// </summary>
+    /// <param name="filePath">The path to the XLSX file</param>
+    /// <returns>The plain text content of the file</returns>
     public string ReadContent(string filePath)
     {
       using (SpreadsheetDocument document = SpreadsheetDocument.Open(filePath, false))
