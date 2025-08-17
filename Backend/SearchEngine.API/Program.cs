@@ -67,6 +67,8 @@ builder.Services.AddCors(options =>
                 "http://localhost:3000",
                 "http://localhost:3001", 
                 "http://localhost:5173",
+                "metaseek-admin.netlify.app",
+                "metaseek-client.netlify.app",
                 "http://localhost:5174",
                 "http://localhost:8080",
                 "http://localhost:4200"
@@ -94,16 +96,9 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Apply CORS first, before other middleware
-app.UseCors("AllowFrontend");
 
-// middlewares
-<<<<<<< HEAD
-// app.UseAntiforgery(); ///[BLOCKING FRONTEND ACCESS]
-=======
-app.UseAntiforgery();
 app.UseCors("AllowAll");
->>>>>>> master
+
 
 app.UseExceptionHandler(appError =>
 {

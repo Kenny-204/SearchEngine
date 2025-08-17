@@ -17,7 +17,7 @@ namespace SearchEngine.Query.Services
         private readonly IStopwordsProvider _stopwordsProvider;
         private readonly QueryParserConfiguration _configuration;
         
-        public QueryParser() : this(new StemmingService(new PorterStemmer()))
+        public QueryParser() : this(new StemmingService(new PorterStemmer(), null))
         {
         }
         

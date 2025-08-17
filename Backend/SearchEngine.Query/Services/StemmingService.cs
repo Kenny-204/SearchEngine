@@ -14,10 +14,10 @@ namespace SearchEngine.Query.Services
     private readonly IPorterStemmer _stemmer;
     private readonly ICachingService<string, string> _cache;
 
-    public StemmingService(IPorterStemmer stemmer, ICachingService<string, string> cache = null)
+    public StemmingService(IPorterStemmer stemmer, ICachingService<string, string>? cache)
     {
       _stemmer = stemmer ?? throw new System.ArgumentNullException(nameof(stemmer));
-      _cache = cache;
+      _cache = cache!;
     }
 
     /// <summary>

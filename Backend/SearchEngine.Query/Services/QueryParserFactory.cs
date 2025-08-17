@@ -19,7 +19,7 @@ namespace SearchEngine.Query.Services
         {
             var configuration = QueryParserConfiguration.CreateDefault();
             var stopwordsProvider = new DefaultStopwordsProvider();
-            var stemmingService = new StemmingService(new PorterStemmer());
+            var stemmingService = new StemmingService(new PorterStemmer(), null);
             
             return new QueryParser(stemmingService, stopwordsProvider, configuration);
         }
@@ -46,7 +46,7 @@ namespace SearchEngine.Query.Services
         {
             var configuration = QueryParserConfiguration.CreateAccuracyOptimized();
             var stopwordsProvider = new DefaultStopwordsProvider();
-            var stemmingService = new StemmingService(new PorterStemmer());
+            var stemmingService = new StemmingService(new PorterStemmer(), null);
             
             return new QueryParser(stemmingService, stopwordsProvider, configuration);
         }

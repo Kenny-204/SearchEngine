@@ -1,0 +1,263 @@
+{
+  "accessors": [
+    {
+      "bufferView": 1,
+      "componentType": 5126,
+      "count": 4854,
+      "max": [
+        49.53730010986328,
+        49.537750244140625,
+        49.956451416015625
+      ],
+      "min": [
+        -49.53730010986328,
+        -49.537750244140625,
+        -49.956451416015625
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 1,
+      "byteOffset": 58248,
+      "componentType": 5126,
+      "count": 4854,
+      "max": [
+        0.9867349863052368,
+        0.9866526126861572,
+        0.9985384345054626
+      ],
+      "min": [
+        -0.9867347478866577,
+        -0.9866517782211304,
+        -0.9993425011634827
+      ],
+      "type": "VEC3"
+    },
+    {
+      "bufferView": 0,
+      "componentType": 5125,
+      "count": 21006,
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 2,
+      "componentType": 5126,
+      "count": 91,
+      "max": [
+        3.0
+      ],
+      "min": [
+        0.0
+      ],
+      "type": "SCALAR"
+    },
+    {
+      "bufferView": 3,
+      "componentType": 5126,
+      "count": 91,
+      "max": [
+        0.48399460315704346,
+        0.7071058750152588,
+        0.7071058750152588,
+        0.7071067690849304
+      ],
+      "min": [
+        -0.7071067690849304,
+        -0.4926588535308838,
+        -0.4926588535308838,
+        -0.48399460315704346
+      ],
+      "type": "VEC4"
+    }
+  ],
+  "animations": [
+    {
+      "channels": [
+        {
+          "sampler": 0,
+          "target": {
+            "node": 4,
+            "path": "rotation"
+          }
+        }
+      ],
+      "name": "Take 001",
+      "samplers": [
+        {
+          "input": 3,
+          "interpolation": "LINEAR",
+          "output": 4
+        }
+      ]
+    }
+  ],
+  "asset": {
+    "extras": {
+      "author": "3d4Tilda (https://sketchfab.com/3d4Tilda)",
+      "license": "CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)",
+      "source": "https://sketchfab.com/3d-models/sphere-organic-5k-animation-9460966fdc0649878e2ed3b1b33cfb9e",
+      "title": "sphere_organic_5k_animation"
+    },
+    "generator": "Sketchfab-12.63.0",
+    "version": "2.0"
+  },
+  "bufferViews": [
+    {
+      "buffer": 0,
+      "byteLength": 84024,
+      "name": "floatBufferViews",
+      "target": 34963
+    },
+    {
+      "buffer": 0,
+      "byteLength": 116496,
+      "byteOffset": 84024,
+      "byteStride": 12,
+      "name": "floatBufferViews",
+      "target": 34962
+    },
+    {
+      "buffer": 0,
+      "byteLength": 364,
+      "byteOffset": 200520,
+      "name": "floatBufferViews"
+    },
+    {
+      "buffer": 0,
+      "byteLength": 1456,
+      "byteOffset": 200884,
+      "byteStride": 16,
+      "name": "floatBufferViews"
+    }
+  ],
+  "buffers": [
+    {
+      "byteLength": 202340,
+      "uri": "scene.bin"
+    }
+  ],
+  "materials": [
+    {
+      "doubleSided": true,
+      "name": "default",
+      "pbrMetallicRoughness": {
+        "baseColorFactor": [
+          0.09305896284668726,
+          0.04091519690685319,
+          0.9130986517934192,
+          1.0
+        ],
+        "metallicFactor": 0.0,
+        "roughnessFactor": 0.5
+      }
+    }
+  ],
+  "meshes": [
+    {
+      "name": "object_004_Retopo_default_0",
+      "primitives": [
+        {
+          "attributes": {
+            "NORMAL": 1,
+            "POSITION": 0
+          },
+          "indices": 2,
+          "material": 0,
+          "mode": 4
+        }
+      ]
+    }
+  ],
+  "nodes": [
+    {
+      "children": [
+        1
+      ],
+      "matrix": [
+        0.7369978427886963,
+        0.6427906155586243,
+        -0.2089363336563109,
+        0.0,
+        0.026737669482827187,
+        -0.336610287427902,
+        -0.9412643909454347,
+        0.0,
+        -0.6753660440444946,
+        0.6881233453750611,
+        -0.26526775956153853,
+        0.0,
+        0.9458160996437073,
+        -0.706112563610077,
+        0.5294656753540038,
+        1.0
+      ],
+      "name": "Sketchfab_model"
+    },
+    {
+      "children": [
+        2
+      ],
+      "matrix": [
+        0.02539999969303608,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.02539999969303608,
+        0.0,
+        0.0,
+        -0.02539999969303608,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        1.0
+      ],
+      "name": "cb0ecf3e2dd14cbe9ad1ce8ef79d68ca.fbx"
+    },
+    {
+      "children": [
+        3
+      ],
+      "name": "Object_2"
+    },
+    {
+      "children": [
+        4
+      ],
+      "name": "RootNode"
+    },
+    {
+      "children": [
+        5
+      ],
+      "name": "object_004_Retopo",
+      "rotation": [
+        -0.7071068286895752,
+        -0.0,
+        0.0,
+        0.7071068286895752
+      ],
+      "translation": [
+        0.0,
+        50.03105163574219,
+        128.9418487548828
+      ]
+    },
+    {
+      "mesh": 0,
+      "name": "object_004_Retopo_default_0"
+    }
+  ],
+  "scene": 0,
+  "scenes": [
+    {
+      "name": "Sketchfab_Scene",
+      "nodes": [
+        0
+      ]
+    }
+  ]
+}
