@@ -1,8 +1,11 @@
+using SearchEngine.API.Core;
+
 namespace SearchEngine.Dtos;
 
 public record class DocumentRankResponseDto : DocumentResponseDto
 {
   public required double Score { get; set; }
+  public required List<WordMatch> Matches { get; set; }
   // /// <summary>
   // /// Unique document ID.
   // /// </summary>
