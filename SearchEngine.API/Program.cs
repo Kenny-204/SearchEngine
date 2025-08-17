@@ -80,13 +80,30 @@ builder.Services.AddCors(options =>
 // AntiForgery
 // builder.Services.AddAntiforgery();
 
+// Cors
+builder.Services.AddCors(options =>
+{
+  options.AddPolicy(
+    "AllowAll",
+    builder =>
+    {
+      builder.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+    }
+  );
+});
+
 var app = builder.Build();
 
 // Apply CORS first, before other middleware
 app.UseCors("AllowFrontend");
 
 // middlewares
+<<<<<<< HEAD
 // app.UseAntiforgery(); ///[BLOCKING FRONTEND ACCESS]
+=======
+app.UseAntiforgery();
+app.UseCors("AllowAll");
+>>>>>>> master
 
 app.UseExceptionHandler(appError =>
 {

@@ -17,6 +17,8 @@ public class AutoSuggestion
 
   public async Task<List<string>> SuggestAsync(string prefix)
   {
+    if (prefix.Length == 0)
+      return [];
     var cacheKey = $"autocomplete:{prefix.ToLower()}";
     var cached = await _cache.GetAsync<List<string>>(cacheKey);
     var dbTerms = cached;

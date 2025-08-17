@@ -18,6 +18,12 @@ namespace SearchEngine.DocumentProcessing.Services
           return new XMLParser();
         case ".pdf":
           return new PDFParser();
+        case ".docx":
+          return new DocxParser();
+        case ".pptx":
+          return new PptxParser();
+        case ".xlsx":
+          return new Xlsxparser();
         default:
           throw new Exception($"File type {extension} not supported");
       }

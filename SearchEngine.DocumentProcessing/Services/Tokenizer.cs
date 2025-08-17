@@ -20,7 +20,7 @@ namespace SearchEngine.DocumentProcessing.Services
         return new List<Token> { };
       string lowerCaseText = text.ToLower();
       var tokens = lowerCaseText.Split(
-        new[] { ' ', '\n', '\r', '\t', '?', '"', '\'', '(', ')', '[', ']', '-', '_', '/' },
+        new[] { ' ', '\n', '\r', '\t', '?', '"', '\'', '(', ')', '[', ']', '-', '_', '/', '.' },
         StringSplitOptions.RemoveEmptyEntries
       );
       return tokens.Select((token, index) => new Token(token, index)).ToList();

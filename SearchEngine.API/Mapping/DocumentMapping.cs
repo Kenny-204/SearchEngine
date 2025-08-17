@@ -1,3 +1,4 @@
+using SearchEngine.API.Core;
 using SearchEngine.Dtos;
 
 namespace SearchEngine.Mappings;
@@ -26,7 +27,11 @@ public static class DocumentMapping
     };
   }
 
-  public static DocumentRankResponseDto ToRankDto(DocumentModel model, double score)
+  public static DocumentRankResponseDto ToRankDto(
+    DocumentModel model,
+    double score,
+    List<WordMatch> matches
+  )
   {
     var meta = new FileMetadataDto()
     {
@@ -46,6 +51,7 @@ public static class DocumentMapping
       CreatedAt = model.CreatedAt,
       IndexedAt = model.IndexedAt,
       Score = score,
+      Matches = matches,
     };
   }
 }

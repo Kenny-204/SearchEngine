@@ -1,7 +1,10 @@
 namespace SearchEngine.DocumentProcessing.Interfaces
 {
-    public interface IParser
-    {
-        public string ReadContent(string filePath);
-    }
+  /// <summary>
+  /// The interface all parsers would implement
+  /// </summary>
+  public interface IParser
+  {
+    public string ReadContent(string filePath);
+  }
 }
