@@ -5,11 +5,11 @@
     # copy everything
     COPY . .
     
-    # restore using the solution file inside Backend
-    WORKDIR /src/Backend
+    # restore using the solution file at the root
     RUN dotnet restore SearchEngine.sln
     
     # publish only the API project
+    WORKDIR /src/Backend
     RUN dotnet publish SearchEngine.API/SearchEngine.API.csproj -c Release -o /app/publish /p:UseAppHost=false
     
     # ---------- runtime stage ----------
