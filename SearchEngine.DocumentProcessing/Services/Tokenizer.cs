@@ -2,8 +2,14 @@ using Porter2Stemmer;
 
 namespace SearchEngine.DocumentProcessing.Services
 {
+  /// <summary>
+  /// Tokenizes text into individual tokens and applies stemming
+  /// </summary>
   public class Tokenizer
   {
+    /// <summary>
+    /// Represents a token extracted from text
+    /// </summary>
     public class Token
     {
       public string String { get; set; }
@@ -15,6 +21,11 @@ namespace SearchEngine.DocumentProcessing.Services
         this.Position = Position;
       }
     }
+    /// <summary>
+    /// splits text into tokens, converts to lowercase, and applies stemming
+    /// </summary>
+    /// <param name="text">The input text to tokenize</param>
+    /// <returns>A list of <see cref="Token"/> objects representing the tokenised text</returns>
 
     public List<Token> Tokenize(string text)
     {
@@ -22,7 +33,7 @@ namespace SearchEngine.DocumentProcessing.Services
         return new List<Token> { };
       string lowerCaseText = text.ToLower();
       var tokens = lowerCaseText.Split(
-        new[] { ' ', '\n', '\r', '\t', '?', '"', '\'',':',',', '(', ')', '[', ']', '-', '_', '/', '.' },
+        new[] { ' ', '\n', '\r', '\t', '?', '"', '\'', ':', ',', '(', ')', '[', ']', '-', '_', '/', '.' },
         StringSplitOptions.RemoveEmptyEntries
       );
 
