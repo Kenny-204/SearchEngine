@@ -2,14 +2,14 @@
     FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
     WORKDIR /src
     
-    # copy everything
-    COPY . .
+    # copy everything in Backend
+    COPY ./Backend ./Backend
     
-    # restore using the solution file at the root
+    # restore using the solution file
+    WORKDIR /src/Backend
     RUN dotnet restore SearchEngine.sln
     
     # publish only the API project
-    WORKDIR /src/Backend
     RUN dotnet publish SearchEngine.API/SearchEngine.API.csproj -c Release -o /app/publish /p:UseAppHost=false
     
     # ---------- runtime stage ----------
