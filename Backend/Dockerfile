@@ -3,7 +3,7 @@
     WORKDIR /src
     
     # Copy everything from repo root into /src
-    COPY .. .
+    COPY . .
     
     # restore using the solution file (solution is in Backend)
     WORKDIR /src/Backend
