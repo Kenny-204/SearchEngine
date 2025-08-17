@@ -2,10 +2,10 @@
     FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
     WORKDIR /src
     
-    # copy everything in Backend
-    COPY ./Backend ./Backend
+    # Copy everything from repo root into /src
+    COPY .. .
     
-    # restore using the solution file
+    # restore using the solution file (solution is in Backend)
     WORKDIR /src/Backend
     RUN dotnet restore SearchEngine.sln
     
