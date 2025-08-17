@@ -14,7 +14,10 @@ var envVars = DotEnv.Read();
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddSingleton(new MongoDbContext(envVars["MONGODB_CONNECTION_STRING"]));
+var mongoConnectionString = envVars.ContainsKey("MONGODB_CONNECTION_STRING") 
+    ? envVars["MONGODB_CONNECTION_STRING"] 
+    : "mongodb://localhost:27017/searchengine";
+builder.Services.AddSingleton(new MongoDbContext(mongoConnectionString));
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>(); // Enqueue documents for processing the indexing processes
 builder.Services.AddSingleton<Indexer>();
 builder.Services.AddHostedService<BackgroundWorker>(); // Register background worker for processing and indexing
@@ -31,25 +34,51 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Cloudinary
+var cloudinaryCloudName = envVars.ContainsKey("CLOUDINARY_CLOUD_NAME") ? envVars["CLOUDINARY_CLOUD_NAME"] : "demo";
+var cloudinaryApiKey = envVars.ContainsKey("CLOUDINARY_API_KEY") ? envVars["CLOUDINARY_API_KEY"] : "demo";
+var cloudinaryApiSecret = envVars.ContainsKey("CLOUDINARY_API_SECRET") ? envVars["CLOUDINARY_API_SECRET"] : "demo";
+
 builder.Services.Configure<CloudinarySettings>(options =>
 {
-  options.CloudName = envVars["CLOUDINARY_CLOUD_NAME"];
-  options.ApiKey = envVars["CLOUDINARY_API_KEY"];
-  options.ApiSecret = envVars["CLOUDINARY_API_SECRET"];
+  options.CloudName = cloudinaryCloudName;
+  options.ApiKey = cloudinaryApiKey;
+  options.ApiSecret = cloudinaryApiSecret;
 });
 builder.Services.AddSingleton<CloudinaryService>();
 
 // Redis
+var redisHost = envVars.ContainsKey("REDIS_HOST") ? envVars["REDIS_HOST"] : "localhost";
+var redisPort = envVars.ContainsKey("REDIS_PORT") ? int.Parse(envVars["REDIS_PORT"]) : 6379;
+var redisPassword = envVars.ContainsKey("REDIS_PASSWORD") ? envVars["REDIS_PASSWORD"] : "";
+
 builder.Services.Configure<RedisCacheSettings>(options =>
 {
-  options.Host = envVars["REDIS_HOST"];
-  options.Port = int.Parse(envVars["REDIS_PORT"]);
-  options.Password = envVars["REDIS_PASSWORD"];
+  options.Host = redisHost;
+  options.Port = redisPort;
+  options.Password = redisPassword;
 });
 builder.Services.AddSingleton<RedisCacheService>();
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy => policy
+            .WithOrigins(
+                "http://localhost:3000",
+                "http://localhost:3001", 
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "http://localhost:8080",
+                "http://localhost:4200"
+            )
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials());
+});
+
+
 // AntiForgery
-builder.Services.AddAntiforgery();
+// builder.Services.AddAntiforgery();
 
 // Cors
 builder.Services.AddCors(options =>
@@ -65,9 +94,16 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Apply CORS first, before other middleware
+app.UseCors("AllowFrontend");
+
 // middlewares
+<<<<<<< HEAD
+// app.UseAntiforgery(); ///[BLOCKING FRONTEND ACCESS]
+=======
 app.UseAntiforgery();
 app.UseCors("AllowAll");
+>>>>>>> master
 
 app.UseExceptionHandler(appError =>
 {
@@ -98,37 +134,33 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-  "Freezing",
-  "Bracing",
-  "Chilly",
-  "Cool",
-  "Mild",
-  "Warm",
-  "Balmy",
-  "Hot",
-  "Sweltering",
-  "Scorching",
-};
+// var summaries = new[]
+// {
+//   "Freezing",
+//   "Bracing",
+//   "Chilly",
+//   "Cool",
+//   "Mild",
+//   "Warm",
+//   "Balm" }
 
-app.MapGet(
-    "/weatherforecast",
-    () =>
-    {
-      var forecast = Enumerable
-        .Range(1, 5)
-        .Select(index => new WeatherForecast(
-          DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-          Random.Shared.Next(-20, 55),
-          summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-      return forecast;
-    }
-  )
-  .WithName("GetWeatherForecast")
-  .WithOpenApi();
+// app.MapGet(
+//     "/weatherforecast",
+//     () =>
+//     {
+//       var forecast = Enumerable
+//         .Range(1, 5)
+//         .Select(index => new WeatherForecast(
+//           DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+//           Random.Shared.Next(-20, 55),
+//           summaries[Random.Shared.Next(summaries.Length)]
+//         ))
+//         .ToArray();
+//       return forecast;
+//     }
+//   )
+//   .WithName("GetWeatherForecast")
+//   .WithOpenApi();
 
 /// <summary>
 /// Returns autocomplete suggestions for a given prefix.

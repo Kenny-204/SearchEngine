@@ -42,13 +42,19 @@ public class DocumentProcessor
 
     DocumentMetadata meta = ExtractMetadata(fileStream, fileName, ext);
     meta.WordCount = terms.Values.Sum();
-    return (meta, terms, keywords);
+    return (meta, terms, keywords??[]);
   }
 
   private List<string> GetKeywords(Dictionary<string, int> dict)
   {
-    double mean = dict.Values.Average();
-    double stdDev = Math.Sqrt(dict.Values.Select(f => Math.Pow(f - mean, 2)).Average());
+
+     if (dict == null || dict.Count == 0)
+    {
+        return new List<string>(); // no keywords if no terms
+    }
+
+    double? mean = dict.Values.Average();
+    double stdDev = Math.Sqrt(dict.Values.Select(f => Math.Pow(f - (mean??0), 2)).Average());
 
     var significantTerms = dict.Where(kv => kv.Value > mean + 1.5 * stdDev);
     return significantTerms.OrderByDescending(kv => kv.Value).Select(kv => kv.Key).ToList();

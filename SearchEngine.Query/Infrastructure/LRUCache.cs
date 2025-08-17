@@ -9,7 +9,7 @@ namespace SearchEngine.Query.Infrastructure
     /// </summary>
     /// <typeparam name="TKey">The type of the cache key</typeparam>
     /// <typeparam name="TValue">The type of the cached value</typeparam>
-    public class LRUCache<TKey, TValue> : ICachingService<TKey, TValue>
+    public class LRUCache<TKey, TValue> : ICachingService<TKey, TValue> where TKey : notnull
     {
         private readonly Dictionary<TKey, LinkedListNode<CacheItem>> _cache;
         private readonly LinkedList<CacheItem> _lruList;
@@ -36,7 +36,7 @@ namespace SearchEngine.Query.Infrastructure
                 return true;
             }
 
-            value = default(TValue);
+            value = default(TValue)!;
             return false;
         }
 
@@ -60,8 +60,11 @@ namespace SearchEngine.Query.Infrastructure
                 if (_cache.Count > _maxSize)
                 {
                     var lruNode = _lruList.Last;
-                    _lruList.RemoveLast();
-                    _cache.Remove(lruNode.Value.Key);
+                    if (lruNode != null)
+                    {
+                        _lruList.RemoveLast();
+                        _cache.Remove(lruNode.Value.Key);
+                    }
                 }
             }
         }
@@ -89,8 +92,8 @@ namespace SearchEngine.Query.Infrastructure
 
         private class CacheItem
         {
-            public TKey Key { get; set; }
-            public TValue Value { get; set; }
+            public TKey Key { get; set; } = default(TKey)!;
+            public TValue Value { get; set; } = default(TValue)!;
         }
     }
 } 

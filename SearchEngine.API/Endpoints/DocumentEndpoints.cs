@@ -6,6 +6,7 @@ using SearchEngine.Dtos;
 using SearchEngine.Filters;
 using SearchEngine.Mappings;
 using SearchEngine.Services;
+using MongoDB.Driver;
 
 namespace SearchEngine.Enpoints;
 
@@ -16,6 +17,148 @@ public static class DocumentEndpoints
   public static RouteGroupBuilder MapDocumentEndpoint(this WebApplication app)
   {
     var group = app.MapGroup("documents");
+
+    // GET /documents - List all documents with pagination and filtering
+    group
+      .MapGet(
+        "/",
+        async (
+          MongoDbContext db,
+          [FromQuery] int page = 1,
+          [FromQuery] int pageSize = 10,
+          [FromQuery] string? searchTerm = null,
+          [FromQuery] string? fileType = null,
+          [FromQuery] string? sortBy = "createdAt",
+          [FromQuery] string? sortOrder = "desc"
+        ) =>
+        {
+          try
+          {
+            // Validate pagination parameters
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 10;
+
+            // Build filter
+            var filter = Builders<DocumentModel>.Filter.Empty;
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+              var searchFilter = Builders<DocumentModel>.Filter.Or(
+                Builders<DocumentModel>.Filter.Regex("title", new MongoDB.Bson.BsonRegularExpression(searchTerm, "i")),
+                Builders<DocumentModel>.Filter.AnyIn("keywords", new[] { searchTerm })
+              );
+              filter = Builders<DocumentModel>.Filter.And(filter, searchFilter);
+            }
+
+            if (!string.IsNullOrWhiteSpace(fileType))
+            {
+              filter = Builders<DocumentModel>.Filter.And(filter, 
+                Builders<DocumentModel>.Filter.Eq("fileType", fileType));
+            }
+
+            // Build sort
+            var sort = sortOrder?.ToLower() == "asc" 
+              ? Builders<DocumentModel>.Sort.Ascending(sortBy)
+              : Builders<DocumentModel>.Sort.Descending(sortBy);
+
+            // Get total count for pagination
+            var totalCount = await db.Documents.CountDocumentsAsync(filter);
+
+            // Get documents with pagination
+            var documents = await db.Documents
+              .Find(filter)
+              .Sort(sort)
+              .Skip((page - 1) * pageSize)
+              .Limit(pageSize)
+              .ToListAsync();
+
+            // Convert to DTOs
+            var documentDtos = documents.Select(DocumentMapping.ToDto).ToList();
+
+            // Calculate pagination info
+            var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
+            var hasNextPage = page < totalPages;
+            var hasPreviousPage = page > 1;
+
+            var response = new DocumentListResponse
+            {
+              Documents = documentDtos,
+              Pagination = new PaginationInfo
+              {
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalCount = (int)totalCount,
+                TotalPages = totalPages,
+                HasNextPage = hasNextPage,
+                HasPreviousPage = hasPreviousPage
+              }
+            };
+
+            return Results.Ok(response);
+          }
+          catch (Exception e)
+          {
+            Console.WriteLine(e);
+            return Results.Problem("An error occurred while fetching documents");
+          }
+        }
+      )
+      .Produces<DocumentListResponse>(StatusCodes.Status200OK)
+      .Produces(StatusCodes.Status500InternalServerError)
+      .WithName("GetDocuments")
+      .WithOpenApi(operation =>
+        new(operation)
+        {
+          Summary = "Get list of uploaded documents",
+          Description = "Retrieves a paginated list of uploaded documents with optional filtering and sorting.",
+        }
+      );
+
+    // GET /documents/{id} - Get a specific document by ID
+    group
+      .MapGet(
+        "/{id}",
+        async (
+          string id,
+          MongoDbContext db
+        ) =>
+        {
+          try
+          {
+            if (!MongoDB.Bson.ObjectId.TryParse(id, out var objectId))
+            {
+              return Results.BadRequest("Invalid document ID format");
+            }
+
+            var document = await db.Documents.Find(d => d.Id == objectId).FirstOrDefaultAsync();
+            
+            if (document == null)
+            {
+              return Results.NotFound("Document not found");
+            }
+
+            var documentDto = DocumentMapping.ToDto(document);
+            return Results.Ok(documentDto);
+          }
+          catch (Exception e)
+          {
+            Console.WriteLine(e);
+            return Results.Problem("An error occurred while fetching the document");
+          }
+        }
+      )
+      .Produces<DocumentResponseDto>(StatusCodes.Status200OK)
+      .Produces(StatusCodes.Status400BadRequest)
+      .Produces(StatusCodes.Status404NotFound)
+      .Produces(StatusCodes.Status500InternalServerError)
+      .WithName("GetDocumentById")
+      .WithOpenApi(operation =>
+        new(operation)
+        {
+          Summary = "Get document by ID",
+          Description = "Retrieves a specific document by its unique identifier.",
+        }
+      );
 
     // POST /documents
     group
@@ -51,7 +194,6 @@ public static class DocumentEndpoints
               publicId: $"docs/{Path.GetFileNameWithoutExtension(fileName)}",
               useFileName: true
             );
-            ;
             if (uploadResult.Error != null)
               return Results.Json(
                 new { error = uploadResult.Error.Message },
@@ -67,7 +209,7 @@ public static class DocumentEndpoints
             };
             var newDocument = new DocumentModel()
             {
-              Title = meta.Title,
+              Title = fileName,
               FilePath = uploadResult.PublicId,
               FileType = ext,
               Keywords = keywords,
@@ -100,6 +242,78 @@ public static class DocumentEndpoints
       .AddEndpointFilter<ValidationFilter<UploadDocDto>>()
       .DisableAntiforgery();
 
+    // DELETE /documents/{id} - Delete a specific document
+    group
+      .MapDelete(
+        "/{id}",
+        async (
+          string id,
+          MongoDbContext db,
+          CloudinaryService cloudinaryService
+        ) =>
+        {
+          try
+          {
+            if (!MongoDB.Bson.ObjectId.TryParse(id, out var objectId))
+            {
+              return Results.BadRequest("Invalid document ID format");
+            }
+
+            // Find the document first to get the Cloudinary public ID
+            var document = await db.Documents.Find(d => d.Id == objectId).FirstOrDefaultAsync();
+            
+            if (document == null)
+            {
+              return Results.NotFound("Document not found");
+            }
+
+            // Delete from Cloudinary first
+            try
+            {
+              var cloudinaryDeleteResult = await cloudinaryService.DeleteFileAsync(document.FilePath);
+              if (cloudinaryDeleteResult.Error != null)
+              {
+                Console.WriteLine($"Warning: Failed to delete from Cloudinary: {cloudinaryDeleteResult.Error.Message}");
+                // Continue with database deletion even if Cloudinary deletion fails
+              }
+            }
+            catch (Exception cloudinaryEx)
+            {
+              Console.WriteLine($"Warning: Cloudinary deletion failed: {cloudinaryEx.Message}");
+              // Continue with database deletion even if Cloudinary deletion fails
+            }
+
+            // Delete from MongoDB
+            var mongoDeleteResult = await db.Documents.DeleteOneAsync(d => d.Id == objectId);
+            
+            if (mongoDeleteResult.DeletedCount == 0)
+            {
+              return Results.NotFound("Document not found or already deleted");
+            }
+
+            return Results.Ok(new { message = "Document deleted successfully", deletedId = id });
+          }
+          catch (Exception e)
+          {
+            Console.WriteLine(e);
+            return Results.Problem("An error occurred while deleting the document");
+          }
+        }
+      )
+      .Produces<object>(StatusCodes.Status200OK)
+      .Produces(StatusCodes.Status400BadRequest)
+      .Produces(StatusCodes.Status404NotFound)
+      .Produces(StatusCodes.Status500InternalServerError)
+      .WithName("DeleteDocument")
+      .WithOpenApi(operation =>
+        new(operation)
+        {
+          Summary = "Delete document by ID",
+          Description = "Deletes a specific document by its unique identifier from both MongoDB and Cloudinary.",
+        }
+      );
+
+    // GET /documents/search - Search documents
     group
       .MapGet(
         "/search",
@@ -179,6 +393,23 @@ public static class DocumentEndpoints
 
     return group;
   }
+}
+
+// Response models for the document list endpoint
+public record class DocumentListResponse
+{
+  public required List<DocumentResponseDto> Documents { get; set; }
+  public required PaginationInfo Pagination { get; set; }
+}
+
+public record class PaginationInfo
+{
+  public required int CurrentPage { get; set; }
+  public required int PageSize { get; set; }
+  public required int TotalCount { get; set; }
+  public required int TotalPages { get; set; }
+  public required bool HasNextPage { get; set; }
+  public required bool HasPreviousPage { get; set; }
 }
 
 record class SearchResponseDto

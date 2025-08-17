@@ -73,4 +73,14 @@ public class CloudinaryService
     };
     return await _cloudinary.UploadAsync(uploadParams);
   }
+
+  public async Task<DeletionResult> DeleteFileAsync(string publicId)
+  {
+    var deleteParams = new DeletionParams(publicId)
+    {
+      ResourceType = ResourceType.Raw
+    };
+    
+    return await _cloudinary.DestroyAsync(deleteParams);
+  }
 }

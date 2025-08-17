@@ -21,15 +21,15 @@ namespace SearchEngine.Query.Services
         {
         }
         
-        public QueryParser(StemmingService stemmingService) : this(stemmingService, null, null)
+        public QueryParser(StemmingService stemmingService) : this(stemmingService, new DefaultStopwordsProvider(), QueryParserConfiguration.CreateDefault())
         {
         }
         
-        public QueryParser(StemmingService stemmingService, IStopwordsProvider stopwordsProvider, QueryParserConfiguration configuration = null)
+        public QueryParser(StemmingService stemmingService, IStopwordsProvider stopwordsProvider, QueryParserConfiguration configuration)
         {
             _stemmingService = stemmingService ?? throw new ArgumentNullException(nameof(stemmingService));
-            _stopwordsProvider = stopwordsProvider ?? new DefaultStopwordsProvider();
-            _configuration = configuration ?? QueryParserConfiguration.CreateDefault();
+            _stopwordsProvider = stopwordsProvider ?? throw new ArgumentNullException(nameof(stopwordsProvider));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             
             // Validate configuration
             _configuration.Validate();

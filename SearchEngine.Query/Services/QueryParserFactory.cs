@@ -55,17 +55,17 @@ namespace SearchEngine.Query.Services
         /// Creates a QueryParser with custom configuration
         /// </summary>
         /// <param name="configuration">Custom configuration</param>
-        /// <param name="stopwordsProvider">Custom stopwords provider (optional)</param>
+        /// <param name="stopwordsProvider">Custom stopwords provider</param>
         /// <param name="enableCaching">Whether to enable stemming cache</param>
         /// <returns>Custom-configured QueryParser instance</returns>
-        public static QueryParser CreateCustom(QueryParserConfiguration configuration, IStopwordsProvider stopwordsProvider = null, bool enableCaching = true)
+        public static QueryParser CreateCustom(QueryParserConfiguration configuration, IStopwordsProvider stopwordsProvider, bool enableCaching = true)
         {
             if (configuration == null)
                 throw new ArgumentNullException(nameof(configuration));
+            if (stopwordsProvider == null)
+                throw new ArgumentNullException(nameof(stopwordsProvider));
                 
-            stopwordsProvider ??= new DefaultStopwordsProvider();
-            
-            ICachingService<string, string> cache = null;
+            ICachingService<string, string>? cache = null;
             if (enableCaching && configuration.EnableCaching)
             {
                 cache = new LRUCache<string, string>(configuration.MaxCacheSize);

@@ -12,7 +12,7 @@ namespace SearchEngine.Query.Services
     /// </summary>
     public class DefaultStopwordsProvider : IStopwordsProvider
     {
-        private HashSet<string> _stopwords;
+        private HashSet<string> _stopwords = new HashSet<string>();
         private readonly object _lockObject = new object();
 
         public DefaultStopwordsProvider()
