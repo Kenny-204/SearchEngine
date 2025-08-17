@@ -14,7 +14,7 @@
     RUN dotnet restore SearchEngine.sln
     
     # Copy everything else
-    COPY  ./
+    COPY . .
     
     # Publish only the API project
     WORKDIR /src/SearchEngine.API
