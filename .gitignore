@@ -12,10 +12,10 @@ x64/
 x86/
 
 # Environment files
-.env
+# /Backend/SearchEngine.API/.env
 
 # Specific project folders (if needed)
-/SearchEngine.Query/bin/
-/SearchEngine.Query/obj/
-/SearchEngine.Query.Tests/bin/
-/SearchEngine.Query.Tests/obj/
+/Backend/SearchEngine.Query/bin/
+/Backend/SearchEngine.Query/obj/
+/Backend/SearchEngine.Query.Tests/bin/
+/Backend/SearchEngine.Query.Tests/obj/

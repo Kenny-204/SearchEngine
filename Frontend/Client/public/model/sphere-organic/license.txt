@@ -1,0 +1,11 @@
+Model Information:
+* title:	sphere_organic_5k_animation
+* source:	https://sketchfab.com/3d-models/sphere-organic-5k-animation-9460966fdc0649878e2ed3b1b33cfb9e
+* author:	3d4Tilda (https://sketchfab.com/3d4Tilda)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "sphere_organic_5k_animation" (https://sketchfab.com/3d-models/sphere-organic-5k-animation-9460966fdc0649878e2ed3b1b33cfb9e) by 3d4Tilda (https://sketchfab.com/3d4Tilda) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
