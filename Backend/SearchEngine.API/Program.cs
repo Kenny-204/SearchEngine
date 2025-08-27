@@ -8,14 +8,21 @@ using SearchEngine.Query.Algorithms;
 using SearchEngine.Query.Services;
 using SearchEngine.Services;
 
-DotEnv.Load();
-var envVars = DotEnv.Read();
+// Only load .env file in development
+if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Production")
+{
+    DotEnv.Load();
+}
+
+var envVars = Environment.GetEnvironmentVariables()
+    .Cast<System.Collections.DictionaryEntry>()
+    .ToDictionary(entry => entry.Key.ToString(), entry => entry.Value.ToString());
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var mongoConnectionString = envVars.ContainsKey("MONGODB_CONNECTION_STRING") 
-    ? envVars["MONGODB_CONNECTION_STRING"] 
+var mongoConnectionString = envVars.ContainsKey("MONGODB_CONNECTION_STRING")
+    ? envVars["MONGODB_CONNECTION_STRING"]
     : "mongodb://localhost:27017/searchengine";
 builder.Services.AddSingleton(new MongoDbContext(mongoConnectionString));
 builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>(); // Enqueue documents for processing the indexing processes
@@ -51,6 +58,8 @@ var redisHost = envVars.ContainsKey("REDIS_HOST") ? envVars["REDIS_HOST"] : "loc
 var redisPort = envVars.ContainsKey("REDIS_PORT") ? int.Parse(envVars["REDIS_PORT"]) : 6379;
 var redisPassword = envVars.ContainsKey("REDIS_PASSWORD") ? envVars["REDIS_PASSWORD"] : "";
 
+
+
 builder.Services.Configure<RedisCacheSettings>(options =>
 {
   options.Host = redisHost;
@@ -65,24 +74,21 @@ builder.Services.AddCors(options =>
         policy => policy
             .WithOrigins(
                 "http://localhost:3000",
-                "http://localhost:3001", 
+                "http://localhost:3001",
                 "http://localhost:5173",
-                "metaseek-admin.netlify.app",
-                "metaseek-client.netlify.app",
+                "https://metaseek-admin.netlify.app",
+                "https://metaseek-client.netlify.app",
                 "http://localhost:5174",
                 "http://localhost:8080",
                 "http://localhost:4200"
+                // Add your Render URL here when deployed
             )
             .AllowAnyMethod()
             .AllowAnyHeader()
             .AllowCredentials());
 });
 
-
-// AntiForgery
-// builder.Services.AddAntiforgery();
-
-// Cors
+// Cors - Use more restrictive policy in production
 builder.Services.AddCors(options =>
 {
   options.AddPolicy(
@@ -96,9 +102,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-
 app.UseCors("AllowAll");
-
 
 app.UseExceptionHandler(appError =>
 {
@@ -129,39 +133,11 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// var summaries = new[]
-// {
-//   "Freezing",
-//   "Bracing",
-//   "Chilly",
-//   "Cool",
-//   "Mild",
-//   "Warm",
-//   "Balm" }
-
-// app.MapGet(
-//     "/weatherforecast",
-//     () =>
-//     {
-//       var forecast = Enumerable
-//         .Range(1, 5)
-//         .Select(index => new WeatherForecast(
-//           DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-//           Random.Shared.Next(-20, 55),
-//           summaries[Random.Shared.Next(summaries.Length)]
-//         ))
-//         .ToArray();
-//       return forecast;
-//     }
-//   )
-//   .WithName("GetWeatherForecast")
-//   .WithOpenApi();
-
 /// <summary>
 /// Returns autocomplete suggestions for a given prefix.
 /// </summary>
 /// <param name="prefix">The text prefix to search for.</param>
-/// <param name="cache">The Redis cache service.</param>
+/// <param name="autoSuggest">The auto suggestion service.</param>
 /// <returns>A list of matching terms.</returns>
 app.MapGet(
     "/autosuggest",
@@ -173,8 +149,8 @@ app.MapGet(
     }
   )
   .Produces<List<string>>(StatusCodes.Status200OK)
-  .WithName("GetAutoSuggest") // Swagger operationId
-  .WithOpenApi(); // Ensures it appears in Swagger
+  .WithName("GetAutoSuggest")
+  .WithOpenApi();
 
 app.MapGet(
     "/next-batch",
