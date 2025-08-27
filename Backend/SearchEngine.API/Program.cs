@@ -123,15 +123,16 @@ app.UseExceptionHandler(appError =>
   });
 });
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-  app.UseSwagger();
-  app.UseSwaggerUI();
-  app.MapScalarApiReference();
-}
 
+// if (app.Environment.IsDevelopment())
+
+
+app.UseSwagger();
+app.UseSwaggerUI();
+app.MapScalarApiReference();
 app.UseHttpsRedirection();
+
+app.MapGet("/", () => "Welcome to MetaSeek API");
 
 /// <summary>
 /// Returns autocomplete suggestions for a given prefix.
