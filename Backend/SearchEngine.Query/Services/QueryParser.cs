@@ -18,40 +18,32 @@ namespace SearchEngine.Query.Services
     private readonly QueryParserConfiguration _configuration;
 
     public QueryParser()
-      : this(new StemmingService(new PorterStemmer())) { }
+      : this(
+        new StemmingService(new PorterStemmer(), null),
+        new DefaultStopwordsProvider(),
+        QueryParserConfiguration.CreateDefault()
+      ) { }
 
     public QueryParser(StemmingService stemmingService)
-      : this(stemmingService, null, null) { }
+      : this(
+        stemmingService,
+        new DefaultStopwordsProvider(),
+        QueryParserConfiguration.CreateDefault()
+      ) { }
 
     public QueryParser(
       StemmingService stemmingService,
       IStopwordsProvider stopwordsProvider,
-      QueryParserConfiguration configuration = null
+      QueryParserConfiguration configuration
     )
     {
-        private readonly StemmingService _stemmingService;
-        private readonly IStopwordsProvider _stopwordsProvider;
-        private readonly QueryParserConfiguration _configuration;
-        
-        public QueryParser() : this(new StemmingService(new PorterStemmer(), null))
-        {
-        }
-        
-        public QueryParser(StemmingService stemmingService) : this(stemmingService, new DefaultStopwordsProvider(), QueryParserConfiguration.CreateDefault())
-        {
-        }
-        
-        public QueryParser(StemmingService stemmingService, IStopwordsProvider stopwordsProvider, QueryParserConfiguration configuration)
-        {
-            _stemmingService = stemmingService ?? throw new ArgumentNullException(nameof(stemmingService));
-            _stopwordsProvider = stopwordsProvider ?? throw new ArgumentNullException(nameof(stopwordsProvider));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
-            
-            // Validate configuration
-            _configuration.Validate();
-        }
+      _stemmingService = stemmingService
+        ?? throw new ArgumentNullException(nameof(stemmingService));
+      _stopwordsProvider = stopwordsProvider
+        ?? throw new ArgumentNullException(nameof(stopwordsProvider));
+      _configuration = configuration
+        ?? throw new ArgumentNullException(nameof(configuration));
 
-      // Validate configuration
       _configuration.Validate();
     }
 
