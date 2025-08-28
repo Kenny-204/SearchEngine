@@ -19,3 +19,7 @@ x86/
 /Backend/SearchEngine.Query/obj/
 /Backend/SearchEngine.Query.Tests/bin/
 /Backend/SearchEngine.Query.Tests/obj/
+
+# env
+.env
+**/.env
