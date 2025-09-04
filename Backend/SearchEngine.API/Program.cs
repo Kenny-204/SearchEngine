@@ -144,7 +144,9 @@ app.MapGet(
     "/autosuggest",
     async (string prefix, AutoSuggestion autoSuggest) =>
     {
+      Console.WriteLine($"🔍 Autosuggest request for prefix: {prefix}");
       var results = await autoSuggest.SuggestAsync(prefix);
+      Console.WriteLine($"✅ Autosuggest results: {string.Join(", ", results ?? [])}");
 
       return Results.Ok(results ?? []);
     }

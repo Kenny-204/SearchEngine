@@ -5,7 +5,7 @@ import axios from "axios";
 // import useAdminAuthStore from "./store/admin-auth";
 
 export const publicAxios = axios.create({
-  baseURL: ' https://localhost:5097/',
+  baseURL: 'https://searchengine-yo6b.onrender.com/',
   timeout: 20000,
 });
 

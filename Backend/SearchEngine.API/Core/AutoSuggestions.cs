@@ -68,7 +68,7 @@ public class AutoSuggestion
     {
       return cached;
     }
-    Console.WriteLine("sdscsvsv");
+
     var prefixes = query.Terms;
 
     // 1️⃣ Normalize and deduplicate

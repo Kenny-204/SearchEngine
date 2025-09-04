@@ -47,16 +47,19 @@ public class DocumentProcessor
 
   private List<string> GetKeywords(Dictionary<string, int> dict)
   {
-
      if (dict == null || dict.Count == 0)
     {
         return new List<string>(); // no keywords if no terms
     }
 
-    double? mean = dict.Values.Average();
-    double stdDev = Math.Sqrt(dict.Values.Select(f => Math.Pow(f - (mean??0), 2)).Average());
-
-    var significantTerms = dict.Where(kv => kv.Value > mean + 1.5 * stdDev);
+    // Use a more lenient approach for longer documents
+    var totalTerms = dict.Values.Sum();
+    var avgFrequency = (double)totalTerms / dict.Count;
+    
+    // For longer documents, use a lower threshold
+    var threshold = Math.Max(2, avgFrequency * 0.8); // At least 2 occurrences or 80% of average
+    
+    var significantTerms = dict.Where(kv => kv.Value >= threshold);
     return significantTerms.OrderByDescending(kv => kv.Value).Select(kv => kv.Key).ToList();
   }
 
@@ -247,12 +250,20 @@ public class DocumentProcessor
     stream.CopyTo(copy);
     copy.Position = 0;
     using var ppt = PresentationDocument.Open(copy, false);
-    var _ = ppt
-      .PresentationPart?.SlideParts.SelectMany(s =>
-        s.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>()
-      )
-      .Select(t => t.Text);
-    return string.Join(" ", _ ?? []);
+    
+    var textParts = new List<string>();
+    
+    if (ppt.PresentationPart?.SlideParts != null)
+    {
+      foreach (var slidePart in ppt.PresentationPart.SlideParts)
+      {
+        // Extract text from all possible text elements in the slide
+        var allTexts = slidePart.Slide.Descendants<DocumentFormat.OpenXml.Drawing.Text>();
+        textParts.AddRange(allTexts.Select(t => t.Text));
+      }
+    }
+    
+    return string.Join(" ", textParts.Where(t => !string.IsNullOrWhiteSpace(t)));
   }
 
   private string ExtractXlsx(Stream stream)

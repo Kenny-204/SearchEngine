@@ -6,7 +6,7 @@ using SearchEngine.Dtos;
 using SearchEngine.Filters;
 using SearchEngine.Mappings;
 using SearchEngine.Services;
-using MongoDB.Driver;
+using System;
 
 namespace SearchEngine.Enpoints;
 
@@ -174,31 +174,33 @@ public static class DocumentEndpoints
           try
           {
             var file = uploadDTO.File;
-            var fileName =
-              (uploadDTO.FileName is null || uploadDTO.FileName == string.Empty)
-                ? file.FileName
+            var originalFileName = file.FileName; // Always use the original file name with extension
+            var displayName = (uploadDTO.FileName is null || uploadDTO.FileName == string.Empty)
+                ? originalFileName
                 : uploadDTO.FileName;
-            var ext = Path.GetExtension(file.FileName);
-            Console.WriteLine(ext);
+            var ext = Path.GetExtension(originalFileName);
+
             if (file == null)
               return Results.BadRequest("No file uploaded.");
 
             using var stream = file.OpenReadStream();
 
             var processor = new DocumentProcessor();
-            var (meta, terms, keywords) = processor.ParseDocument(stream, fileName, ext);
+            var (meta, terms, keywords) = processor.ParseDocument(stream, originalFileName, ext);
 
             var uploadResult = await cloudinaryService.UploadFileAsync(
               stream,
-              fileName,
-              publicId: $"docs/{Path.GetFileNameWithoutExtension(fileName)}",
-              useFileName: true
+              originalFileName,
+              publicId: $"docs/{originalFileName}",
+              useFileName: false
             );
             if (uploadResult.Error != null)
               return Results.Json(
                 new { error = uploadResult.Error.Message },
                 statusCode: StatusCodes.Status500InternalServerError
               );
+
+
 
             var metaData = new FileMetadata()
             {
@@ -207,10 +209,16 @@ public static class DocumentEndpoints
               WordCount = meta.WordCount,
               FileSize = meta.FileSizeBytes,
             };
+
+            // Use the best available URL from Cloudinary upload result
+            var filePath = !string.IsNullOrEmpty(uploadResult.SecureUrl?.ToString()) ? uploadResult.SecureUrl?.ToString() :
+                          !string.IsNullOrEmpty(uploadResult.Url?.ToString()) ? uploadResult.Url?.ToString() :
+                          $"https://res.cloudinary.com/dpfuj9km4/raw/upload/{uploadResult.PublicId}";
+
             var newDocument = new DocumentModel()
             {
-              Title = fileName,
-              FilePath = uploadResult.PublicId,
+              Title = displayName,
+              FilePath = filePath,
               FileType = ext,
               Keywords = keywords,
               Metadata = metaData,
@@ -313,7 +321,7 @@ public static class DocumentEndpoints
         }
       );
 
-    // GET /documents/search - Search documents
+// GET /documents/search - Search documents
     group
       .MapGet(
         "/search",
@@ -390,6 +398,135 @@ public static class DocumentEndpoints
           Description = "Matches query with uploaded documents file and returns relevant documents",
         }
       );
+
+    // GET /documents/count - Get total document count
+    group
+      .MapGet(
+        "/count",
+        async (MongoDbContext db) =>
+        {
+          try
+          {
+            var count = await db.Documents.CountDocumentsAsync(FilterDefinition<DocumentModel>.Empty);
+            return Results.Ok(new { count = (int)count });
+          }
+          catch (Exception e)
+          {
+            return Results.Problem("An error occurred while getting document count");
+          }
+        }
+      )
+      .Produces<object>(StatusCodes.Status200OK)
+      .Produces(StatusCodes.Status500InternalServerError)
+      .WithName("GetDocumentCount")
+      .WithOpenApi(operation =>
+        new(operation)
+        {
+          Summary = "Get document count",
+          Description = "Returns the total number of documents in the system",
+        }
+      );
+
+          // TEMPORARY: Force indexing for testing - COMMENT OUT WHEN DONE TESTING
+     group
+       .MapPost(
+         "/force-index",
+         async (MongoDbContext db, Indexer indexer) =>
+         {
+           try
+           {
+             // Get all documents that need indexing (IndexedAt is null)
+             var documentsToIndex = await db.Documents
+               .Find(d => d.IndexedAt == null)
+               .ToListAsync();
+
+             if (!documentsToIndex.Any())
+             {
+               return Results.Ok(new { 
+                 message = "No documents need indexing",
+                 indexedCount = 0
+               });
+             }
+
+                           // For each document, we need to get its terms and process them
+              // Since we don't have the original terms, we'll need to re-process the documents
+              var docTermsBatch = new List<(MongoDB.Bson.ObjectId DocId, Dictionary<string, int> TermFrequencies)>();
+             
+             foreach (var doc in documentsToIndex)
+             {
+               try
+               {
+                 // For now, we'll create a simple term frequency dictionary
+                 // In a real implementation, you'd want to re-process the document
+                 var terms = new Dictionary<string, int>();
+                 
+                 // Add keywords as terms
+                 if (doc.Keywords != null)
+                 {
+                   foreach (var keyword in doc.Keywords)
+                   {
+                     var normalizedKeyword = keyword.ToLowerInvariant();
+                     if (terms.ContainsKey(normalizedKeyword))
+                       terms[normalizedKeyword]++;
+                     else
+                       terms[normalizedKeyword] = 1;
+                   }
+                 }
+                 
+                 // Add title words as terms
+                 if (!string.IsNullOrEmpty(doc.Title))
+                 {
+                   var titleWords = doc.Title.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                   foreach (var word in titleWords)
+                   {
+                     var normalizedWord = word.ToLowerInvariant();
+                     if (terms.ContainsKey(normalizedWord))
+                       terms[normalizedWord]++;
+                     else
+                       terms[normalizedWord] = 1;
+                   }
+                 }
+
+                 if (terms.Count > 0)
+                 {
+                   docTermsBatch.Add((doc.Id, terms));
+                 }
+               }
+               catch (Exception ex)
+               {
+                 Console.WriteLine($"Failed to process document {doc.Id}: {ex.Message}");
+               }
+             }
+
+             if (docTermsBatch.Count > 0)
+             {
+               // Use the batch indexing method
+               await indexer.BatchUpdateGroupedInvertedIndexAsync(docTermsBatch);
+             }
+
+             return Results.Ok(new {
+               message = "Forced indexing completed",
+               totalDocuments = documentsToIndex.Count,
+               indexedCount = docTermsBatch.Count
+             });
+           }
+           catch (Exception e)
+           {
+             return Results.Problem($"Force index error: {e.Message}");
+           }
+         }
+       )
+       .Produces<object>(StatusCodes.Status200OK)
+       .Produces(StatusCodes.Status500InternalServerError)
+       .WithName("ForceIndex")
+       .WithOpenApi(operation =>
+         new(operation)
+         {
+           Summary = "Force indexing for testing",
+           Description = "Temporarily forces indexing of all unindexed documents",
+         }
+       );
+
 
     return group;
   }

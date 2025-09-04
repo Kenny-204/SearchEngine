@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SearchBar } from "../components/SearchBar";
 import { SearchResults } from "../components/SearchResults";
 import { DocumentView } from "../components/DocumentView";
@@ -8,7 +8,7 @@ import { documents } from "../data/documents";
 import { SearchResult, AutocompleteMatch } from "../types";
 import Three from "../components/model";
 import Header from "../components/Header";
-import { autoComplete, searchQuery } from "../utils/action";
+import { autoComplete, searchQuery, documentCount } from "../utils/action";
 
 type pageState = "landing" | "results" | "document";
 
@@ -27,6 +27,16 @@ function SearchPage() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [currentDocument, setCurrentDocument] = useState<string>("");
   const [searchTerms, setSearchTerms] = useState<string[]>([]);
+  const [docCount, setDocCount] = useState<number>(0);
+
+  // Fetch document count on component mount
+  useEffect(() => {
+    const fetchDocCount = async () => {
+      const count = await documentCount();
+      setDocCount(count);
+    };
+    fetchDocCount();
+  }, []);
 
   const handleSearch = async (query: string) => {
     const results = await searchQuery(query);
@@ -54,7 +64,20 @@ function SearchPage() {
   // };
 
   const handleViewDocument = (documentUrl: string) => {
-    window.open(documentUrl, '_blank');
+    console.log('🔗 Opening document URL:', documentUrl);
+    console.log('📁 Document URL type:', typeof documentUrl);
+    console.log('📁 Document URL length:', documentUrl?.length);
+    
+    if (!documentUrl) {
+      console.error('❌ No document URL provided');
+      return;
+    }
+    
+    try {
+      window.open(documentUrl, '_blank');
+    } catch (error) {
+      console.error('❌ Error opening document:', error);
+    }
   };
   
 
@@ -133,7 +156,7 @@ function SearchPage() {
               <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
                 <div className="text-center">
                   <div className="text-3xl font-bold text-indigo-600 mb-2">
-                    {documents.length}
+                    {docCount}
                   </div>
                   <div className="text-slate-600">Documents</div>
                 </div>

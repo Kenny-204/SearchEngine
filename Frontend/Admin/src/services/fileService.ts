@@ -1,16 +1,16 @@
 import { Document, DocumentsResponse, FileUploadData, UploadResponse } from '../types/file';
 
 class FileService {
-  private baseUrl = 'http://localhost:5097';
+  private baseUrl = 'https://searchengine-yo6b.onrender.com';
 
   async uploadFile(data: FileUploadData): Promise<UploadResponse> {
     const formData = new FormData();
     formData.append('file', data.file);
-    
+
     if (data.fileName) {
       formData.append('fileName', data.fileName);
     }
-    
+
     if (data.tags && data.tags.length > 0) {
       data.tags.forEach(tag => {
         if (tag.trim() !== '') {
@@ -92,7 +92,7 @@ class FileService {
   }
 
   downloadFile(doc: Document): void {
-    const downloadUrl = `https://res.cloudinary.com/dpfuj9km4/raw/upload/${doc.filePath}`;
+    const downloadUrl = doc.filePath;
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = doc.title;
@@ -103,7 +103,7 @@ class FileService {
   }
 
   viewFile(doc: Document): void {
-    const viewUrl = `https://res.cloudinary.com/dpfuj9km4/raw/upload/${doc.filePath}`;
+    const viewUrl = doc.filePath;
     window.open(viewUrl, '_blank');
   }
 

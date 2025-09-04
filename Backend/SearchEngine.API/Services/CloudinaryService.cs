@@ -80,7 +80,7 @@ public class CloudinaryService
     {
       ResourceType = ResourceType.Raw
     };
-    
+
     return await _cloudinary.DestroyAsync(deleteParams);
   }
 }

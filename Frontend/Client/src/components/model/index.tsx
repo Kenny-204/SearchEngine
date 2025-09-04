@@ -89,21 +89,86 @@ function AnimatedBox() {
 }
 
 function Scene() {
-  const { scene, animations } = useGLTF("/model/sphere-organic/scene.gltf");
-  const { ref, mixer, names, actions, clips } = useAnimations(
-    animations,
-    scene
+  // Create a simple but attractive 3D scene
+  return (
+    <>
+      {/* Animated rotating sphere */}
+      <AnimatedSphere />
+      
+      {/* Animated floating particles */}
+      <AnimatedParticles />
+      
+      {/* Ambient light for better visibility */}
+      <ambientLight intensity={0.3} />
+    </>
   );
-  useEffect(() => {
-    console.log(actions);
-    let action = actions?.["Take 001"];
-    if (action) {
-      action.play();
-      action.timeScale = 0.5;
+}
+
+function AnimatedSphere() {
+  const meshRef = useRef<Mesh>(null);
+  
+  useFrame(({ clock }) => {
+    if (meshRef.current) {
+      meshRef.current.rotation.x = clock.elapsedTime * 0.5;
+      meshRef.current.rotation.y = clock.elapsedTime * 0.3;
     }
-  }, []);
-  // const gltf = useLoader(GLTFLoader, "/model/sphere-organic/scene.gltf");
-  return <primitive object={scene} />;
+  });
+
+  return (
+    <mesh ref={meshRef} position={[0, 0, 0]}>
+      <sphereGeometry args={[2, 32, 32]} />
+      <meshStandardMaterial 
+        color="#4f46e5" 
+        metalness={0.7} 
+        roughness={0.2}
+        emissive="#1e40af"
+        emissiveIntensity={0.2}
+      />
+    </mesh>
+  );
+}
+
+function AnimatedParticles() {
+  const particlesRef = useRef<Mesh[]>([]);
+  
+  useFrame(({ clock }) => {
+    particlesRef.current.forEach((particle, i) => {
+      if (particle) {
+        // Make particles float up and down
+        particle.position.y = Math.sin(clock.elapsedTime + i * 0.5) * 2;
+        // Make particles rotate
+        particle.rotation.x = clock.elapsedTime * 0.5 + i * 0.1;
+        particle.rotation.y = clock.elapsedTime * 0.3 + i * 0.1;
+      }
+    });
+  });
+
+  return (
+    <>
+      {Array.from({ length: 30 }, (_, i) => (
+        <mesh
+          key={i}
+          ref={(el) => {
+            if (el) particlesRef.current[i] = el;
+          }}
+          position={[
+            (Math.random() - 0.5) * 15,
+            (Math.random() - 0.5) * 10,
+            (Math.random() - 0.5) * 15
+          ]}
+        >
+          <sphereGeometry args={[0.15, 8, 8]} />
+          <meshStandardMaterial 
+            color="#8b5cf6" 
+            emissive="#8b5cf6"
+            emissiveIntensity={0.8}
+            transparent={true}
+            opacity={0.8}
+          />
+        </mesh>
+      ))}
+    </>
+  );
 }
 
 export default Three;
